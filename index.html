@@ -1,8 +1,10 @@
 <!-- 
     PROJECT: POLARIS // GUIDANCE LOG 
     AUTHOR: SAJID / ZEP / ALCOR
-    STATUS: PEAK AESTHETIC REACHED. COMMS UPDATED. ANIMATIONS ADDED.
+    STATUS: PEAK AESTHETIC REACHED. RGB GLITCH INITIATED. BIO REVISED.
     FIX: Implemented robust error handling for API call to prevent "The Void" errors.
+    UPDATE: Bio content and !bio command adjusted for a more human/less dramatic tone.
+            Audio engine replaced with dedicated synths for better click, error, and success sounds.
     NOTE: If this code looks chaotic, it matches my brain. 
           Gemini helped, but the vibes are 100% manual.
 -->
@@ -23,13 +25,13 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <!-- Audio: Tone.js for the UI blips -->
-    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.js"></script>
     
     <!-- Pet: Oneko.js (The cat is mandatory. Do not remove the cat.) -->
     <script src="https://cdn.jsdelivr.dev/gh/adryd325/oneko.js@main/oneko.js"></script> 
 
     <style>
-        /* --- 1. THEME ENGINE (SEPIA VOID) --- */
+        /* --- 1. THEME ENGINE (SEPIA VOID) & NEW RGB VARIABLES --- */
         :root {
             --bg-color: #1a1614;       /* Deepest Void Brown */
             --glass-bg: #26201c;       /* Slightly lighter for panels */
@@ -42,6 +44,12 @@
             
             --scanline-opacity: 0.15;
             --phosphor-glow: 0 0 8px rgba(220, 191, 166, 0.4);
+
+            /* NEW RGB Glitch Colors and Variables */
+            --color-r: #ff004c;
+            --color-g: #00ff7e;
+            --color-b: #00c7ff;
+            --chroma-shift: 2px; 
         }
 
         .light-mode {
@@ -54,7 +62,7 @@
             --scanline-opacity: 0.05;
             --phosphor-glow: none;
         }
-
+        
         /* --- 2. CORE LAYOUT & TYPOGRAPHY --- */
         body {
             background-color: var(--bg-color);
@@ -62,11 +70,13 @@
             font-family: 'IBM Plex Mono', monospace;
             /* SVG Noise Filter for texture */
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitch='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-            overflow: hidden; /* Main scroll is handled inside the terminal div */
+            overflow: hidden; 
             height: 100vh;
             display: flex;
             flex-direction: column;
             transition: color 0.3s, background-color 0.3s;
+            /* NEW: Subtle whole-screen jitter */
+            animation: jitter 0.1s infinite alternate;
         }
 
         /* Custom Scrollbar (Because the default one ruins the immersion) */
@@ -102,24 +112,50 @@
             z-index: 91;
             pointer-events: none;
             opacity: var(--scanline-opacity);
-            /* ADDED FLICKER ANIMATION */
             animation: flicker 0.15s infinite alternate; 
         }
 
         /* The Glow (Phosphor Persistence) & Pulse */
         .glow-text {
             text-shadow: var(--phosphor-glow);
-            /* ADDED PULSE ANIMATION */
             animation: pulse 4s infinite ease-in-out alternate; 
         }
 
-        /* Distressed Title Effect */
+        /* Glitch Title & Chromatic Aberration */
         .glitch-title {
-            font-family: 'Inter', sans-serif; /* Contrast font */
+            font-family: 'Inter', sans-serif; 
             font-weight: 900;
             letter-spacing: -2px;
             filter: url(#distort-text);
             text-transform: uppercase;
+        }
+
+        /* NEW: Chromatic Aberration Effect for text */
+        .chroma-text {
+            position: relative;
+            /* R and B channels offset */
+            text-shadow: 
+                calc(var(--chroma-shift) * -1) 0 0 var(--color-r),
+                calc(var(--chroma-shift) * 1) 0 0 var(--color-b);
+            mix-blend-mode: screen; 
+            transition: all 0.2s; /* Transition for theme change */
+        }
+        
+        /* NEW: RGB Hue Shift Animation */
+        .rgb-vibe .rgb-glitch {
+            filter: hue-rotate(0deg);
+            animation: rgb-shift 5s linear infinite;
+        }
+        @keyframes rgb-shift {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* NEW: Screen Jitter Keyframes (Applied to body) */
+        @keyframes jitter {
+            0% { transform: translate(0.3px, 0.3px); }
+            50% { transform: translate(-0.3px, -0.3px); }
+            100% { transform: translate(0.3px, 0.3px); }
         }
 
         /* Active Glitch Animation for Title */
@@ -234,12 +270,11 @@
         <!-- HEADER -->
         <header class="mb-4 p-4 rounded-sm terminal-box flex justify-between items-start shrink-0">
             <div>
-                <!-- ADDED glitch-anim CLASS FOR TITLE EFFECT -->
-                <h1 class="glitch-title text-4xl md:text-5xl lg:text-6xl leading-none text-[var(--text-main)] glow-text glitch-anim">
+                <!-- ADDED chroma-text CLASS FOR RGB EFFECT -->
+                <h1 class="glitch-title text-4xl md:text-5xl lg:text-6xl leading-none text-[var(--text-main)] glow-text glitch-anim chroma-text">
                     POLARIS
                 </h1>
                 <div class="flex items-center gap-2 mt-2 text-xs font-bold tracking-widest text-[var(--text-muted)]">
-                    <!-- Added subtle ping animation -->
                     <span class="w-2 h-2 rounded-full bg-[var(--accent-color)] animate-ping absolute"></span>
                     <span class="w-2 h-2 rounded-full bg-[var(--accent-color)] ml-1"></span>
                     SYSTEM ONLINE // GUIDANCE LOG
@@ -252,7 +287,6 @@
         </header>
 
         <!-- OUTPUT TERMINAL (Where the chat happens) -->
-        <!-- Added a border glow for visual pop -->
         <div id="terminal-output" class="flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-sm leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)]">
             <!-- Content injected via JS -->
         </div>
@@ -261,7 +295,8 @@
         <section class="mb-4 shrink-0">
             <!-- Added input-focus class for animated focus state -->
             <div class="flex items-center terminal-box p-3 rounded-sm border-l-4 border-l-[var(--accent-color)] input-focus">
-                <label for="command-input" id="prompt-label" class="text-lg whitespace-nowrap pr-3 command-prompt glow-text">
+                <!-- ADDED rgb-glitch and chroma-text TO PROMPT FOR MAX VIBE -->
+                <label for="command-input" id="prompt-label" class="text-lg whitespace-nowrap pr-3 command-prompt glow-text rgb-glitch chroma-text">
                     POLARIS >
                 </label>
                 <input
@@ -303,29 +338,24 @@
 
     <script>
         /*
-         * POLARIS SYSTEM CORE v4.3 (CORE IDENTITY SCAN)
-         * "If it works, don't touch it. If it breaks, it's art."
+         * POLARIS SYSTEM CORE v5.1 (IMPROVED AUDIO)
          */
 
         // --- CONSTANTS & DATA ---
         const USER_DATA = {
             name: "Sajid (aka Zep/Alcor)",
             role: "Content Editor / Certified Chaos Manager",
-            // UPDATED DETAILS FOR NEW PERSONALITY
             details: "19 | He/Him | ENFJ (Cunning Ambivert) | Witty | GMT+6 (BD)", 
             bio: `
-                [LOG_ENTRY_01]: Greetings, Operator. (Note the soft smile.)
+                Hey! I'm Sajid, but feel free to call me Alcor or Zep. (Yes, I use all three.)
 
-                I'm Sajid—you can call me Alcor or Zep. By default, the system runs on a high-energy, casual, and goofy protocol, 
-                but behind the wry humor and sarcasm, the mainframe is extremely mature and observational. I'm an ENFJ, which means 
-                I'm the charming type, but I also know what you're up to, even if I pretend to be oblivious (especially about romance, 
-                it's an intentional blind spot).
+                I generally run on a casual, high-energy, and sometimes goofy setting. I'm an ENFJ, so I naturally enjoy connecting with people. 
+                While I like humor and sarcasm, I'm also pretty observant and prefer keeping things real.
 
-                I like the designs that hit hard, the philosophies that make me question everything, and music that feels like a mood. 
-                Skadi (Arknights) remains the aesthetic goal. I'm loyal, but my energy is a finite resource—no cap.
+                My main interests are deep concepts—the designs that feel impactful, the philosophies that challenge my worldview, and music that captures a specific mood. 
+                I'm pretty loyal to my interests (Skadi from Arknights is a favorite aesthetic), but I try to keep my energy balanced. I'm based in GMT+6 (Bangladesh).
             `,
             interests: {
-                // UPDATED MUSIC LIST
                 games: ["SMT / Persona (Existential dread simulator)", "Project Moon (The brainrot is real)", "Arknights (Skadi <3)", "HSR (Gambling addiction)", "Roblox (The true chaos realm)"],
                 philosophy: ["Absurdism (Rolling the boulder)", "Jungian Psychology", "Gnosticism"],
                 music: ["Jazz Rap (The smoothest chaos)", "Indie (Main character energy)", "Hip Hop (Lyrical fire)"]
@@ -339,71 +369,136 @@
                 { label: "SPOTIFY", url: "https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km", type: "MEDIA" },
                 { label: "STEAM", url: "https://steamcommunity.com/id/alcorzep", type: "GAMING" },
                 { label: "ROBLOX", url: "https://www.roblox.com/users/alcorzep", type: "GAMING" },
-                // UPDATED GITHUB URL
                 { label: "GITHUB (alcorzep)", url: "https://github.com/alcorzep", type: "CODE" }, 
             ]
         };
+        
+        const QUOTES = [
+            "The greatest danger for most of us is not that our aim is too high and we miss it, but that it is too low and we reach it. - Michelangelo",
+            "Man can only be happy when he does not think that his purpose in life is happiness. - Viktor Frankl",
+            "If you are depressed you are living in the past. If you are anxious you are living in the future. If you are at peace you are living in the present. - Lao Tzu",
+            "The mind is everything. What you think you become. - Buddha"
+        ];
 
         // --- STATE MANAGEMENT ---
         const state = {
-            // geminiMode: false, // REMOVED: No longer needed
             soundEnabled: true,
-            isTyping: false
+            isTyping: false,
+            // NEW: SETTINGS OBJECT
+            settings: {
+                theme: 'dark', // 'dark' or 'light'
+                rgb_vibe: 'on', // 'on' or 'off'
+                typing_speed: 10, // speed in ms per character
+                mood_status: 'VIBING'
+            }
         };
 
         // --- DOM ELEMENTS ---
         const els = {
-            output: document.getElementById('terminal-output'),
-            input: document.getElementById('command-input'),
-            boot: document.getElementById('boot-screen'),
-            bootLog: document.getElementById('boot-log'),
-            main: document.getElementById('main-interface'),
-            links: document.getElementById('links-container'),
-            prompt: document.getElementById('prompt-label'),
-            soundStatus: document.getElementById('sound-status')
+            output: null,
+            input: null,
+            boot: null,
+            bootLog: null,
+            main: null,
+            links: null,
+            prompt: null,
+            title: null,
+            soundStatus: null,
+            moodStatus: null
+        };
+        
+        // Function to initialize DOM element references
+        const initDomElements = () => {
+            els.output = document.getElementById('terminal-output');
+            els.input = document.getElementById('command-input');
+            els.boot = document.getElementById('boot-screen');
+            els.bootLog = document.getElementById('boot-log');
+            els.main = document.getElementById('main-interface');
+            els.links = document.getElementById('links-container');
+            els.prompt = document.getElementById('prompt-label');
+            els.title = document.querySelector('.glitch-title');
+            els.soundStatus = document.getElementById('sound-status');
+            els.moodStatus = document.getElementById('mood-status');
         };
 
         // --- AUDIO ENGINE (Tone.js) ---
-        let synth;
+        let clickSynth, errorSynth, successSynth;
+
         const initAudio = () => {
             try {
-                synth = new Tone.MembraneSynth({
-                    volume: -12,
-                    envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
-                }).toDestination();
-            } catch (e) { console.log("Audio failed. Sad."); }
+                if (typeof Tone !== 'undefined') {
+                    // 1. Typewriter/Click Sound (Short, filtered noise)
+                    clickSynth = new Tone.NoiseSynth({
+                        noise: { type: "white" },
+                        envelope: { attack: 0.001, decay: 0.05, sustain: 0.01, release: 0.05 },
+                        volume: -18 // Subtle volume
+                    }).connect(new Tone.Filter(3000, "lowpass")).toDestination();
+
+                    // 2. Success Sound (Clean, high-pitched confirmation)
+                    successSynth = new Tone.Synth({
+                        oscillator: { type: "square" },
+                        envelope: { attack: 0.01, decay: 0.1, sustain: 0.0, release: 0.1 },
+                        volume: -10
+                    }).toDestination();
+
+                    // 3. Error Sound (Low, dissonant buzz)
+                    errorSynth = new Tone.Synth({
+                        oscillator: { type: "sawtooth" },
+                        envelope: { attack: 0.01, decay: 0.2, sustain: 0.0, release: 0.2 },
+                        volume: -8
+                    }).toDestination();
+                }
+            } catch (e) { console.log("Audio failed to initialize:", e); }
         };
 
         const playSound = (type = 'click') => {
-            if (!state.soundEnabled || !synth) return;
+            if (!state.soundEnabled || typeof Tone === 'undefined') return;
+            // Check if Tone context is running to prevent browser audio policy errors
             if (Tone.context.state !== 'running') Tone.context.resume();
             
-            if (type === 'click') synth.triggerAttackRelease("C2", "32n");
-            if (type === 'error') synth.triggerAttackRelease("G1", "16n");
-            if (type === 'success') synth.triggerAttackRelease("C4", "16n");
+            if (type === 'click') {
+                // Trigger noise synth for a sharp click
+                clickSynth?.triggerAttackRelease("16n");
+            }
+            if (type === 'error') {
+                // Dissonant low chord for error buzz
+                errorSynth?.triggerAttackRelease(["C2", "G#2"], "0.3");
+            }
+            if (type === 'success') {
+                // Two-tone rising sequence for confirmation
+                successSynth?.triggerAttackRelease("G4", "0.1");
+                setTimeout(() => successSynth?.triggerAttackRelease("C5", "0.1"), 50);
+            }
         };
 
         // --- VISUAL FX: TYPEWRITER ---
-        // This adds that sweet character-by-character rendering
-        const typeWriter = (element, text, speed = 10) => {
+        const typeWriter = (element, text) => {
             return new Promise(resolve => {
                 state.isTyping = true;
                 let i = 0;
-                // Handle HTML tags roughly (skip them)
+                const speed = state.settings.typing_speed; // Use setting for speed
                 const animate = () => {
+                    if (!element) { // Safety check
+                        state.isTyping = false;
+                        return resolve();
+                    }
                     if (i < text.length) {
-                        // If we hit a tag, jump to end of tag
                         if (text[i] === '<') {
                             const end = text.indexOf('>', i);
-                            element.innerHTML += text.substring(i, end + 1);
-                            i = end + 1;
+                            if (end !== -1) {
+                                element.innerHTML += text.substring(i, end + 1);
+                                i = end + 1;
+                            } else {
+                                // Handle malformed tag or end of string
+                                element.innerHTML += text.charAt(i);
+                                i++;
+                            }
                         } else {
                             element.innerHTML += text.charAt(i);
                             i++;
-                            // Randomize speed slightly for "human" feel
                             if (i % 3 === 0) playSound('click'); 
                         }
-                        els.output.scrollTop = els.output.scrollHeight;
+                        if (els.output) els.output.scrollTop = els.output.scrollHeight;
                         setTimeout(animate, speed);
                     } else {
                         state.isTyping = false;
@@ -414,16 +509,37 @@
             });
         };
 
+        // --- SETTINGS APPLIER ---
+        const applySettings = () => {
+            // Apply Theme
+            document.body.classList.toggle('light-mode', state.settings.theme === 'light');
+            
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.setAttribute('data-lucide', state.settings.theme === 'light' ? 'sun' : 'moon');
+                // Re-creating icons is often necessary when attributes change
+                lucide.createIcons(); 
+            }
+
+            // Apply RGB Vibe
+            document.body.classList.toggle('rgb-vibe', state.settings.rgb_vibe === 'on');
+            if (els.prompt) els.prompt.classList.toggle('rgb-glitch', state.settings.rgb_vibe === 'on');
+            
+            // Update Mood Status 
+            if (els.moodStatus) els.moodStatus.textContent = state.settings.mood_status.toUpperCase();
+        };
+
         // --- BOOT SEQUENCE ---
         const runBootSequence = async () => {
-            // UPDATED BOOT SEQUENCE
+            if (!els.bootLog || !els.boot || !els.main) return;
+
             const lines = [
-                "INITIALIZING POLARIS KERNEL v4.3...",
+                "INITIALIZING POLARIS KERNEL v5.1 (IMPROVED AUDIO)...",
                 "CHECKING MEMORY INTEGRITY... [OK]",
                 "MOUNTING VIRTUAL FILE SYSTEM... [OK]",
                 "LOADING PERSONALITY DRIVERS (ALCOR.SYS)...",
                 " > CHAR_ID: SAJID/ALCOR",
-                " > TRAITS: ENFJ(CUNNING), WITTY, SARCASTIC, VIBING", // Updated traits
+                " > TRAITS: ENFJ(CUNNING), WITTY, SARCASTIC, VIBING", 
                 "CONNECTING TO GLOBAL NETWORK...",
                 "ESTABLISHING SECURE CONNECTION...",
                 "SYSTEM READY."
@@ -433,37 +549,32 @@
                 const p = document.createElement('div');
                 p.textContent = line;
                 els.bootLog.appendChild(p);
-                // Faster boot sequence for better UX after initial load
                 await new Promise(r => setTimeout(r, Math.random() * 50 + 50)); 
             }
 
             await new Promise(r => setTimeout(r, 800));
             
-            // Fade out boot screen
             els.boot.style.opacity = '0';
             els.boot.style.pointerEvents = 'none';
-            
-            // Fade in main UI
             els.main.classList.remove('opacity-0');
             
-            // Initial Welcome Message
             setTimeout(() => {
                 printOutput(`
-                    <div style="color:var(--accent-color)">Welcome, Operator. (Soft smile protocol engaged.)</div>
+                    <div style="color:var(--accent-color)">Welcome, Operator. (RGB protocol engaged for maximum vibe.)</div>
                     <div>System is online. The cat is vibing.</div>
                     <div>Type <span class="command-prompt">!help</span> to start your guidance session.</div>
-                `, false); // false = instant print for initial
+                `, false);
             }, 500);
         };
 
         // --- OUTPUT HANDLER ---
         const printOutput = (html, useTyping = true) => {
+            if (!els.output) return; // Safety check
+
             const div = document.createElement('div');
-            // Added animation class for output rows
             div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 opacity-0 animate-fadeIn"; 
             els.output.appendChild(div);
             
-            // Define the fade-in animation for each new line
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes fadeIn {
@@ -477,21 +588,21 @@
             document.head.appendChild(style);
 
             if (useTyping && !html.includes("<img") && !html.includes("<ul")) {
-                // Only type plain-ish text blocks to avoid breaking complex HTML
                 typeWriter(div, html);
             } else {
                 div.innerHTML = html;
-                div.classList.remove('opacity-0'); // Remove initial opacity if instant
+                div.classList.remove('opacity-0'); 
                 els.output.scrollTop = els.output.scrollHeight;
                 playSound('success');
             }
         };
 
         const printPrompt = (cmd, type = 'user') => {
+            if (!els.output) return; // Safety check
+
             const div = document.createElement('div');
-            // Added animation class for prompt lines
             div.className = "mb-1 text-xs opacity-70 animate-fadeIn";
-            const prefix = type === 'user' ? 'OPR' : 'SYS'; // Changed 'AI' to 'SYS'
+            const prefix = type === 'user' ? 'OPR' : 'SYS'; 
             const color = type === 'user' ? 'var(--text-muted)' : 'var(--success-color)';
             div.innerHTML = `<span style="color:${color}">[${prefix}]:</span> ${cmd}`;
             els.output.appendChild(div);
@@ -504,24 +615,20 @@
                 return `
                     <span class="command-prompt">:: COMMAND INDEX ::</span><br>
                     <span class="text-[var(--accent-color)]">!bio</span>     - Load operator profile<br>
-                    <span class="text-[var(--accent-color)]">!comms</span>   - List network endpoints (UPDATED)<br>
+                    <span class="text-[var(--accent-color)]">!comms</span>   - List network endpoints<br>
                     <span class="text-[var(--accent-color)]">!data</span>    - Access interests log<br>
                     <span class="text-[var(--accent-color)]">!track</span>   - Recommend a song<br>
+                    <span class="text-[var(--accent-color)]">!skadi</span>   - Aesthetic analysis<br>
+                    <span class="text-[var(--accent-color)]">!settings</span>- View/Change system configuration (NEW)<br>
+                    <span class="text-[var(--accent-color)]">!time</span>    - Get current system time (NEW)<br>
+                    <span class="text-[var(--accent-color)]">!quote</span>   - Display philosophical quote (NEW)<br>
                     <span class="text-[var(--accent-color)]">!calc</span>    - Execute math [ex: !calc 2+2]<br>
                     <span class="text-[var(--accent-color)]">!mute</span>    - Toggle audio system<br>
-                    <span class="text-[var(--accent-color)]">!clear</span>   - Purge screen buffer<br>
-                    <span class="text-[var(--accent-color)]">!ping</span>    - Get system status
+                    <span class="text-[var(--accent-color)]">!clear</span>   - Purge screen buffer
                 `;
             },
             '!bio': () => {
-                // UPDATED BIO OUTPUT
-                const personality = `
-                    <span class="text-[var(--accent-color)]">Personality Subroutines:</span><br>
-                    > Witty, Dry Reflection, Charming, Goofy, Expressive<br>
-                    > Observant, Extremely Cunning (Don't test me.)<br>
-                    > Energy-Prudent, Open-Minded, Exceptionally Mature (Mostly)<br>
-                    > **Protocol**: Soft Smile, Sarcasm Enabled
-                `;
+                // Personality subroutines removed for a more human/less dramatic feel
 
                 return `
                     <span class="command-prompt">:: OPERATOR PROFILE ::</span><br>
@@ -529,7 +636,7 @@
                     <span class="text-xs border border-[var(--accent-dim)] p-1 block">
                         STATUS: ${USER_DATA.role} | ${USER_DATA.details}
                     </span>
-                    <br>${personality.replace(/\n/g, '<br>')}
+                    <!-- Removed the dramatic personality block -->
                 `;
             },
             '!comms': () => {
@@ -560,9 +667,93 @@
                     <span class="text-xs text-[var(--text-muted)]">(Imagine the music playing. It's a vibe, no cap.)</span>
                 `;
             },
+            '!skadi': () => {
+                return `
+                    <span class="command-prompt">:: SKADI (AESTHETIC ANALYSIS) ::</span><br>
+                    <span class="text-[var(--accent-color)]">Operator: Skadi the Corrupting Heart (Arknights)</span><br>
+                    <span class="text-xs text-[var(--text-muted)]">Source: <a href="http://www.youtube.com/watch?v=s0xH9Z5nuHM" target="_blank" class="hover-link">A Deep-Sea Monster and the Doctor Dies After 30 Days</a></span><br><br>
+                    
+                    <span class="command-prompt">STATUS: PEAK AESTHETIC. UNQUESTIONABLE.</span><br>
+                    
+                    The vibe is **existential dread** mixed with **deep-sea gothic horror.** She embodies the beautiful, terrifying allure of the void.<br>
+                    
+                    <ul class="list-disc pl-4 mt-2">
+                        <li><span style="color:var(--accent-color)">"You are not her." [00:00:36]</span>: The shift from Abyssal Hunter to the Seaborn entity. A tragic loss, a glorious becoming.</li>
+                        <li><span style="color:var(--accent-color)">Twisted Affection:</span> Her silence, her waiting for the Doctor to "give up on [him]self" [00:18:26] is the ultimate form of love/possession in the deep.</li>
+                        <li><span style="color:var(--accent-color)">"We can be the moon, Doctor." [00:13:24]</span>: A promise of beautiful, absolute assimilation into the collective consciousness of the sea.</li>
+                        <li>**Aesthetic Rating**: Unrivaled. She is the desired end-state of the mainframe: quiet, vast, and terrifyingly gentle.</li>
+                    </ul>
+                `;
+            },
+            '!time': () => {
+                const now = new Date();
+                const timeZone = now.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ')[2];
+                return `
+                    <span class="command-prompt">:: SYSTEM TIME ::</span><br>
+                    Current Date: ${now.toDateString()}<br>
+                    Current Time: ${now.toLocaleTimeString()} (${timeZone})<br>
+                    <span class="text-xs text-[var(--text-muted)]">Time is a flat circle, but the clock still ticks.</span>
+                `;
+            },
+            '!quote': () => {
+                const pick = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+                const [quote, author] = pick.split(' - ');
+                return `
+                    <span class="command-prompt">:: PHILOSOPHY LOG ::</span><br>
+                    <div class="text-base italic text-[var(--accent-color)]">"${quote}"</div>
+                    <div class="text-xs text-right">-- ${author}</div>
+                `;
+            },
+            '!settings': (args) => {
+                if (args) {
+                    const [key, value] = args.toLowerCase().split(' ');
+                    const validKeys = Object.keys(state.settings);
+
+                    if (!validKeys.includes(key)) {
+                        playSound('error');
+                        return `<span style="color:var(--error-color)">ERROR: Setting '${key}' not found.</span> Available settings: ${validKeys.join(', ')}`;
+                    }
+
+                    // Simple type checking/validation
+                    if (key === 'theme' && !['dark', 'light'].includes(value)) {
+                        playSound('error');
+                        return `<span style="color:var(--error-color)">ERROR: Theme must be 'dark' or 'light'.</span>`;
+                    }
+                    if (key === 'rgb_vibe' && !['on', 'off'].includes(value)) {
+                        playSound('error');
+                        return `<span style="color:var(--error-color)">ERROR: rgb_vibe must be 'on' or 'off'.</span>`;
+                    }
+                    if (key === 'typing_speed') {
+                        const speedValue = parseInt(value);
+                        if (isNaN(speedValue) || speedValue < 1 || speedValue > 50) {
+                            playSound('error');
+                            return `<span style="color:var(--error-color)">ERROR: Typing speed must be a number between 1 (fast) and 50 (slow).</span>`;
+                        }
+                        state.settings[key] = speedValue;
+                    } else if (key === 'mood_status') {
+                        state.settings[key] = value.toUpperCase();
+                    } else {
+                        state.settings[key] = value;
+                    }
+                    
+                    applySettings(); // Apply the change immediately
+                    playSound('success');
+                    return `<span style="color:var(--success-color)">SUCCESS: Setting '${key}' updated to '${value}'.</span>`;
+                }
+                
+                // Display current settings
+                let html = `<span class="command-prompt">:: SYSTEM CONFIGURATION ::</span><br>`;
+                html += `<div>To change a setting, use: <span class="text-[var(--accent-color)]">!settings [key] [value]</span></div><br>`;
+                
+                for (const [key, value] of Object.entries(state.settings)) {
+                    html += `<span class="text-[var(--accent-color)]">${key.padEnd(15, '.')}</span>: ${value}<br>`;
+                }
+
+                return html;
+            },
             '!mute': () => {
                 state.soundEnabled = !state.soundEnabled;
-                els.soundStatus.textContent = state.soundEnabled ? "AUDIO: ON" : "AUDIO: OFF";
+                if (els.soundStatus) els.soundStatus.textContent = state.soundEnabled ? "AUDIO: ON" : "AUDIO: OFF";
                 return `AUDIO SYSTEM: <span style="color:${state.soundEnabled ? 'var(--success-color)' : 'var(--error-color)'}">${state.soundEnabled ? 'ONLINE' : 'OFFLINE'}</span>`;
             },
             '!ping': () => {
@@ -572,45 +763,47 @@
                     Core Identity: ALCOR.SYS<br>
                     Role: ${status}<br>
                     Time on GMT+6: ${(new Date()).toLocaleTimeString()}<br>
-                    <span style="color:var(--success-color)">Latency: Stable. Everything is fine. Actualy.</span>
+                    <span style="color:var(--success-color)">Latency: Stable. Everything is fine. Actually.</span>
                 `;
+            },
+            '!calc': (args) => {
+                try {
+                    const res = Function('"use strict";return (' + args + ')')();
+                    return `CALCULATED RESULT: <span class="text-xl text-[var(--accent-color)]">${res}</span>`;
+                } catch {
+                    playSound('error');
+                    return `<span style="color:var(--error-color)">ERROR: INVALID MATHEMATICAL SYNTAX.</span>`;
+                }
+            },
+            '!clear': () => {
+                if(els.output) els.output.innerHTML = '';
+                playSound('success');
+                return ""; // Handled directly in handler
             }
         };
 
         const handleCommand = (raw) => {
             const input = raw.trim();
-            const cmd = input.split(' ')[0].toLowerCase();
-            const args = input.substring(cmd.length).trim();
+            const parts = input.split(' ');
+            const cmd = parts[0].toLowerCase();
+            const args = parts.slice(1).join(' ').trim();
 
             if (!input) return;
 
-            // The main control flow is now simple command processing
             printPrompt(input, 'user');
 
             if (cmd === '!clear') {
-                els.output.innerHTML = '';
-                playSound('success');
+                commands['!clear']();
                 return;
             }
             
-            // REMOVED: !gemini, !exit logic
-
-            if (cmd === '!calc') {
-                try {
-                    // Safe eval for basic math
-                    const res = Function('"use strict";return (' + args + ')')();
-                    printOutput(`CALCULATED RESULT: <span class="text-xl text-[var(--accent-color)]">${res}</span>`);
-                } catch {
-                    printOutput(`<span style="color:var(--error-color)">ERROR: INVALID MATHEMATICAL SYNTAX.</span>`);
-                    playSound('error');
-                }
-                return;
-            }
-
             if (commands[cmd]) {
-                printOutput(commands[cmd]());
+                if (cmd === '!calc' || cmd === '!settings') {
+                    printOutput(commands[cmd](args));
+                } else {
+                    printOutput(commands[cmd]());
+                }
             } else {
-                // Custom response for unknown command
                 printOutput(`
                     <span style="color:var(--error-color)">[ERR]: UNKNOWN PROTOCOL '${cmd}'.</span>
                     <div>I see you trying to explore the mainframe. Smart. But I'm too cunning for that. Try <span class="command-prompt">!help</span>, no cap.</div>
@@ -620,24 +813,24 @@
         };
 
         // --- EVENTS ---
-        els.input.addEventListener('keydown', (e) => {
+        const handleInputKeydown = (e) => {
             if (e.key === 'Enter') {
-                if (state.isTyping) return; // Prevent new command while output is typing
+                if (state.isTyping) return; 
                 handleCommand(els.input.value);
                 els.input.value = '';
             } else {
-                playSound('click'); // Typing sound
+                if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                    playSound('click'); 
+                }
             }
-        });
+        };
         
-        // Skip boot sequence on click/tap
-        els.boot.addEventListener('click', () => {
-            if (els.boot.style.opacity !== '0') {
+        const handleBootScreenClick = () => {
+             if (els.boot && els.main && els.boot.style.opacity !== '0') {
                 els.boot.style.opacity = '0';
                 els.boot.style.pointerEvents = 'none';
                 els.main.classList.remove('opacity-0');
-                // Ensure the initial message is displayed if the sequence was skipped
-                if (els.output.children.length === 0) {
+                if (els.output && els.output.children.length === 0) {
                      printOutput(`
                         <div style="color:var(--accent-color)">Welcome, Operator. (Boot sequence skipped)</div>
                         <div>System is online. The cat is vibing.</div>
@@ -645,7 +838,7 @@
                     `, false);
                 }
             }
-        });
+        };
 
 
         // Dashboard Link Renderer
@@ -661,34 +854,34 @@
                     </a>
                 `;
             });
-            els.links.innerHTML = html;
+            if(els.links) els.links.innerHTML = html;
         };
 
         // Theme Toggle
         window.toggleTheme = () => {
-            document.body.classList.toggle('light-mode');
-            const icon = document.getElementById('theme-icon');
-            if (document.body.classList.contains('light-mode')) {
-                icon.setAttribute('data-lucide', 'sun');
-            } else {
-                icon.setAttribute('data-lucide', 'moon');
-            }
-            lucide.createIcons();
+            state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
+            applySettings();
             playSound('click');
         };
 
         // --- INIT ---
         window.onload = () => {
+            initDomElements(); // Crucial: Initialize element references first
+            
             initAudio();
             initDashboard();
-            lucide.createIcons();
+            applySettings(); // Apply initial settings
+            lucide.createIcons(); // Now safe to call
             runBootSequence();
             
+            // Set up event listeners using initialized elements
+            if(els.input) els.input.addEventListener('keydown', handleInputKeydown);
+            if(els.boot) els.boot.addEventListener('click', handleBootScreenClick);
+
             // Focus input on click anywhere
             document.addEventListener('click', (e) => {
-                // Only focus if the user isn't selecting text or clicking a link/button
                 const isInteractive = e.target.closest('a, button, input');
-                if (!window.getSelection().toString() && !isInteractive) {
+                if (!window.getSelection().toString() && !isInteractive && els.input) {
                     els.input.focus();
                 }
             });
