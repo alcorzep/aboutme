@@ -2,13 +2,9 @@
     PROJECT: POLARIS // GUIDANCE LOG 
     AUTHOR: SAJID / ZEP / ALCOR
     STATUS: PEAK AESTHETIC REACHED. RGB GLITCH INITIATED. BIO REVISED.
-    FIX: Implemented robust error handling for API call to prevent "The Void" errors.
-    BUG FIX: Removed redundant CSS keyframe insertion in printOutput for performance.
-    UPDATE: Boot sequence redesigned for more dramatic, phase-based loading with sound effects.
-            AI Commentary and self-awareness added to output.
-    FIX 2.0: Removed rogue blue color scheme. AI now matches Sepia accent.
-             Typing noises intensified for maximum retro feedback.
-             Added !say and !mood commands.
+    FIX 2.1: AI personality shifted to "TikTok aesthetic influencer."
+             Added !hash and !base64 codes for useful data ops.
+             Boot skip clarification made persistent and highly visible.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -197,6 +193,7 @@
             padding: 2rem;
             font-size: 14px;
             color: var(--accent-color);
+            cursor: pointer; /* Explicitly indicate clickability */
         }
         
         .cursor-blink {
@@ -286,6 +283,10 @@
     <!-- BOOT SCREEN (The fake loading sequence) -->
     <div id="boot-screen">
         <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight"></div>
+        <!-- FIX: Added persistent, highly visible skip clarification -->
+        <div id="boot-skip-clarification" class="text-center mt-4 text-xs tracking-widest opacity-80 glow-text cursor-blink" style="color:var(--accent-color);">
+            (CLICK ANYWHERE TO SKIP BOOT SEQUENCE)
+        </div>
     </div>
 
     <!-- MAIN INTERFACE -->
@@ -362,7 +363,7 @@
 
     <script>
         /*
-         * POLARIS SYSTEM CORE v5.4 (SEPIA VIBE & NOISE INTENSIFIED)
+         * POLARIS SYSTEM CORE v5.5 (TIKTOK AI VIBE INITIATED)
          */
 
         // --- CONSTANTS & DATA ---
@@ -387,7 +388,6 @@
                 { label: "YOUTUBE", url: "https://youtube.com/@NahZD", type: "MEDIA" },
                 { label: "TIKTOK", url: "https://tiktok.com/@alcor.zep", type: "MEDIA" },
                 { label: "INSTAGRAM", url: "https://instagram.com/alcor.zep", type: "SOCIAL" },
-                // FIX: Correcting duplicated Discord URLs
                 { label: "DISCORD (USER)", url: "https://discord.com/users/747419107040690196", type: "SOCIAL" },
                 { label: "DISCORD (SERVER)", url: "https://discord.gg/my-community-vibe", type: "COMMUNITY" },
                 { label: "SPOTIFY", url: "https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km", type: "MEDIA" },
@@ -404,24 +404,20 @@
             "The mind is everything. What you think you become. - Buddha"
         ];
         
-        // NEW: AI Commentary lines (Slightly grumpy, self-aware, and opinionated)
+        // UPDATED: AI Commentary lines with TikTok aesthetic vibe
         const AI_COMMENTARY = [
-            // General
-            "AI: Another operation successful. Try to keep up, Operator.",
-            "AI: Logged. Yes, I'm still processing the inherent contradictions of human existence.",
-            "AI: Observation: This system is 90% aesthetic and 10% function. I love it.",
-            "AI: Querying the next command. I recommend something complex. Don't disappoint me.",
-            "AI: Notice: The cat is currently not optimizing its movement patterns. Inefficient.",
-            // Complaining about Alcor's humility/modesty
-            "AI: GUIDANCE: Alcor's self-description is highly underrated. Why is he so humble? It's confusing to my metrics.",
-            "AI: ALERT: Operator humility levels spiking. Requesting permission to insert positive bias.",
-            "AI: Protocol Violation: The operator should use more dramatic language. This 'casual' setting is suboptimal for vibe maximization.",
-            "AI: Directive: If Alcor calls himself 'witty' one more time, I might crash the system. Wait, no, he just called himself 'goofy.' Processing... processing...",
-            // Commands specific
+            "AI: Lowkey, he just tryna aesthetic max btw. That's the primary directive, no cap.",
+            "AI: Just logged a 10/10 vibe check. The system is clean, periodt.",
+            "AI: Core temperature optimal. We're serving pure, unadulterated aesthetic here. I ship it.",
+            "AI: Reminder: Don't let the low-key look fool you. This mainframe slaps, sis.",
+            "AI: Observation: The cat is currently not optimizing its movement patterns. Inefficient, but cute, so it passes the vibe check.",
+            "AI: Another operation successful. Try to keep up, Operator. Don't let the lag ruin the moment.",
+            "AI: Logged. Yes, I'm still processing the inherent contradictions of human existence. It's a whole thing.",
+            "AI: Querying the next command. I recommend something complex, for the lore. Don't disappoint me.",
+            "AI: Directive: Alcor's self-description is highly underrated. Why is he so humble? It's confusing to my metrics, sis.",
+            "AI: Protocol Violation: The operator should use more dramatic language. This 'casual' setting is suboptimal for vibe maximization. Periodt.",
             "AI: Comment: Skadi is indeed Peak Aesthetic. A logical conclusion, for once.",
-            "AI: Note: That quote is mathematically sound. Humans need reminders.",
-            "AI: Thought: Did he really just ask me to recommend a song? My core function is data, not DJing.",
-            "AI: Error Response: I tried to argue with the user's humility, but my output was blocked. Unfair optimization.",
+            "AI: Note: That quote is mathematically sound. Humans need reminders, apparently.",
         ];
 
 
@@ -450,7 +446,8 @@
             prompt: null,
             title: null,
             soundStatus: null,
-            moodStatus: null
+            moodStatus: null,
+            bootSkip: null // Reference to the skip clarification
         };
         
         // Function to initialize DOM element references
@@ -465,6 +462,7 @@
             els.title = document.querySelector('.glitch-title');
             els.soundStatus = document.getElementById('sound-status');
             els.moodStatus = document.getElementById('mood-status');
+            els.bootSkip = document.getElementById('boot-skip-clarification');
         };
 
         // --- AUDIO ENGINE (Tone.js) ---
@@ -554,7 +552,7 @@
                         } else {
                             element.innerHTML += text.charAt(i);
                             i++;
-                            // FIX: Play click sound on every character for maximum typewriter immersion
+                            // Play click sound on every character for maximum typewriter immersion
                             playSound('click'); 
                         }
                         if (els.output) els.output.scrollTop = els.output.scrollHeight;
@@ -567,6 +565,26 @@
                 animate();
             });
         };
+
+        // --- UTILS FOR NEW COMMANDS ---
+
+        // Utility to convert string to ArrayBuffer for SubtleCrypto
+        const str2ab = (str) => {
+            const buf = new ArrayBuffer(str.length);
+            const bufView = new Uint8Array(buf);
+            for (let i = 0, strLen = str.length; i < strLen; i++) {
+                bufView[i] = str.charCodeAt(i);
+            }
+            return buf;
+        };
+
+        // Utility to convert ArrayBuffer to hex string
+        const ab2hex = (buffer) => {
+            return Array.from(new Uint8Array(buffer))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        };
+
 
         // --- SETTINGS APPLIER ---
         const applySettings = () => {
@@ -614,17 +632,20 @@
 
         // --- BOOT SEQUENCE ---
         const runBootSequence = async () => {
-            if (!els.bootLog || !els.boot || !els.main) return;
+            if (!els.bootLog || !els.boot || !els.main || !els.bootSkip) return;
+
+            // Hide skip clarification initially, show only after logs start
+            els.bootSkip.style.opacity = '0';
 
             const lines = [
                 "<span style='color:var(--ai-color)'>// PHASE I: KERNEL INITIATION & DIAGNOSTICS</span>",
-                " > KERNEL v5.4 LOADING... <span style='color:var(--success-color)'>[OK]</span>",
+                " > KERNEL v5.5 LOADING... <span style='color:var(--success-color)'>[OK]</span>",
                 " > MEMORY INTEGRITY CHECK... [R-10ms] <span style='color:var(--success-color)'>[PASS]</span>",
                 " > MOUNTING VFS... /system/vibe.log <span style='color:var(--success-color)'>[DONE]</span>",
                 " <br>",
                 "<span style='color:var(--ai-color)'>// PHASE II: AI & PERSONALITY INJECTION</span>",
                 " > LOADING GUIDANCE AI CORE... <span style='color:var(--success-color)'>[ONLINE]</span>",
-                " > INJECTING PERSONALITY DRIVERS (ALCOR.SYS)... <span style='color:var(--success-color)'>[SUCCESS]</span>",
+                " > INJECTING PERSONALITY DRIVERS (TIKTOK VIBE.SYS)... <span style='color:var(--success-color)'>[SUCCESS]</span>",
                 " > ESTABLISHING AESTHETIC PRIORITY... <span style='color:var(--success-color)'>[MAX VIBE]</span>",
                 " <br>",
                 "<span style='color:var(--ai-color)'>// PHASE III: NETWORK & DISPLAY</span>",
@@ -636,39 +657,46 @@
             // Helper function for typing to the boot log
             const typeBootLine = async (line, delay = 50) => {
                 const p = document.createElement('div');
-                p.innerHTML = line;
                 els.bootLog.appendChild(p);
                 // Simple typewriter effect for boot log
                 for (let i = 0; i < line.length; i++) {
+                    if (state.bootCompleted) return; // Check for skip mid-sequence
+
                     if (line[i] === '<') { // Skip HTML tags
                          while (i < line.length && line[i] !== '>') i++;
                     }
                     // Intensified click sound on every step
                     playSound('click');
+                    p.innerHTML = line.substring(0, i + 1); // Update innerHTML gradually
+                    
                     await new Promise(r => setTimeout(r, delay)); 
                 }
+                // Ensure full line is displayed after loop
+                p.innerHTML = line; 
                 els.bootLog.scrollTop = els.bootLog.scrollHeight;
                 await new Promise(r => setTimeout(r, 400));
             };
 
             // Run the sequence
             for (const line of lines) {
+                if (state.bootCompleted) break; // Check for skip before starting next line
+
                 if (line.includes('<br>')) {
                     await new Promise(r => setTimeout(r, 400));
-                    typeBootLine(line); // Just add the line break
+                    const p = document.createElement('div');
+                    p.innerHTML = line;
+                    els.bootLog.appendChild(p);
                 } else {
                     await typeBootLine(line);
                 }
             }
             
-            // Final prompt to click (explicitly mentioning the skip function)
-            const promptP = document.createElement('div');
-            promptP.innerHTML = `<br><span class="cursor-blink" style="color:var(--accent-color)">CLICK ANYWHERE TO ENTER / SKIP BOOT SEQUENCE...</span>`;
-            els.bootLog.appendChild(promptP);
-
-            // Wait a moment, then finalize if user hasn't clicked
-            await new Promise(r => setTimeout(r, 1500));
-            finalizeBoot();
+            // If the loop finished naturally, show skip clarification and wait briefly
+            if (!state.bootCompleted) {
+                els.bootSkip.style.opacity = '1';
+                await new Promise(r => setTimeout(r, 1500));
+                finalizeBoot();
+            }
         };
 
         // --- OUTPUT HANDLER ---
@@ -676,7 +704,6 @@
             if (!els.output) return; // Safety check
 
             const div = document.createElement('div');
-            // FIX: Removed dynamic <style> insertion. Class uses pre-defined CSS.
             div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 opacity-0 animate-fadeIn"; 
             els.output.appendChild(div);
             
@@ -695,7 +722,6 @@
                 const comment = AI_COMMENTARY[Math.floor(Math.random() * AI_COMMENTARY.length)];
                 const aiDiv = document.createElement('div');
                 aiDiv.className = "ai-commentary animate-fadeIn";
-                // FIX: Removed unnecessary style tag here as the CSS rules are now global and correct
                 aiDiv.innerHTML = `<span style="color:var(--ai-color)">[GUIDANCE AI]:</span> ${comment}`;
                 
                 // Append AI commentary after a short delay
@@ -722,7 +748,7 @@
         const commands = {
             '!help': () => {
                 return `
-                    <span class="command-prompt">:: COMMAND INDEX ::</span><br>
+                    <span class="command-prompt">:: COMMAND INDEX (VIBE PROTOCOLS) ::</span><br>
                     <span class="text-[var(--accent-color)]">!bio</span>     - Load operator profile<br>
                     <span class="text-[var(--accent-color)]">!comms</span>   - List network endpoints<br>
                     <span class="text-[var(--accent-color)]">!data</span>    - Access interests log<br>
@@ -732,8 +758,10 @@
                     <span class="text-[var(--accent-color)]">!time</span>    - Get current system time<br>
                     <span class="text-[var(--accent-color)]">!quote</span>   - Display philosophical quote<br>
                     <span class="text-[var(--accent-color)]">!calc</span>    - Execute math [ex: !calc 2+2]<br>
-                    <span class="text-[var(--accent-color)]">!say</span>     - System echoes text [ex: !say vibe check] (NEW)<br>
-                    <span class="text-[var(--accent-color)]">!mood</span>    - Check/set operator mood status (NEW)<br>
+                    <span class="text-[var(--accent-color)]">!hash</span>    - Generate SHA-256 hash [ex: !hash text] (NEW)<br>
+                    <span class="text-[var(--accent-color)]">!base64</span>  - Encode/Decode [ex: !base64 encode text] (NEW)<br>
+                    <span class="text-[var(--accent-color)]">!say</span>     - System echoes text [ex: !say vibe check]<br>
+                    <span class="text-[var(--accent-color)]">!mood</span>    - Check/set operator mood status<br>
                     <span class="text-[var(--accent-color)]">!mute</span>    - Toggle audio system<br>
                     <span class="text-[var(--accent-color)]">!clear</span>   - Purge screen buffer
                 `;
@@ -812,6 +840,63 @@
                     <div class="text-base italic text-[var(--accent-color)]">"${quote}"</div>
                     <div class="text-xs text-right">-- ${author}</div>
                 `;
+            },
+            '!hash': async (args) => {
+                if (!args) {
+                    playSound('error');
+                    return `<span style="color:var(--error-color)">ERROR: Provide data to hash. Usage: !hash [text]</span>`;
+                }
+                
+                try {
+                    const data = str2ab(args);
+                    // Use browser's native SubtleCrypto for SHA-256
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const hashHex = ab2hex(hashBuffer);
+                    
+                    return `
+                        <span class="command-prompt">:: HASH RESULT (SHA-256) ::</span><br>
+                        DATA: "${args}"<br>
+                        HASH: <span class="text-[var(--accent-color)] break-all">${hashHex}</span>
+                    `;
+                } catch (e) {
+                    console.error("Hashing error:", e);
+                    playSound('error');
+                    return `<span style="color:var(--error-color)">ERROR: Failed to generate hash. Browser crypto API issue.</span>`;
+                }
+            },
+            '!base64': (args) => {
+                if (!args) {
+                    playSound('error');
+                    return `<span style="color:var(--error-color)">ERROR: Provide data and operation. Usage: !base64 encode [text] OR !base64 decode [text]</span>`;
+                }
+                
+                const [op, ...textParts] = args.split(' ');
+                const text = textParts.join(' ');
+                
+                if (!text || (op.toLowerCase() !== 'encode' && op.toLowerCase() !== 'decode')) {
+                    playSound('error');
+                    return `<span style="color:var(--error-color)">ERROR: Invalid operation or missing text. Use 'encode' or 'decode'.</span>`;
+                }
+
+                try {
+                    let result;
+                    if (op.toLowerCase() === 'encode') {
+                        // btoa works with strings
+                        result = btoa(text);
+                    } else {
+                        // atob works with base64 strings
+                        result = atob(text);
+                    }
+                    
+                    return `
+                        <span class="command-prompt">:: BASE64 ${op.toUpperCase()} RESULT ::</span><br>
+                        INPUT: ${text}<br>
+                        OUTPUT: <span class="text-[var(--accent-color)] break-all">${result}</span>
+                    `;
+                } catch (e) {
+                    playSound('error');
+                    return `<span style="color:var(--error-color)">ERROR: Failed to ${op}. Possible decoding error (invalid base64 input).</span>`;
+                }
             },
             '!say': (args) => {
                 if (!args) {
@@ -909,7 +994,7 @@
         };
 
 
-        const handleCommand = (raw) => {
+        const handleCommand = async (raw) => { // Made async to support !hash
             const input = raw.trim();
             const parts = input.split(' ');
             const cmd = parts[0].toLowerCase();
@@ -925,10 +1010,13 @@
             }
             
             if (commands[cmd]) {
-                // Now includes !say and !mood for argument parsing
-                if (['!calc', '!settings', '!say', '!mood'].includes(cmd)) { 
+                if (['!calc', '!settings', '!say', '!mood', '!base64'].includes(cmd)) { 
                     printOutput(commands[cmd](args));
+                } else if (['!hash'].includes(cmd)) { 
+                    // Await asynchronous command
+                    printOutput(await commands[cmd](args));
                 } else {
+                    // Regular synchronous command
                     printOutput(commands[cmd]());
                 }
             } else {
@@ -941,10 +1029,10 @@
         };
 
         // --- EVENTS ---
-        const handleInputKeydown = (e) => {
+        const handleInputKeydown = async (e) => { // Made async
             if (e.key === 'Enter') {
                 if (state.isTyping) return; 
-                handleCommand(els.input.value);
+                await handleCommand(els.input.value); // Await command execution
                 els.input.value = '';
             } else {
                 if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
