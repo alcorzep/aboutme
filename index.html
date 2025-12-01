@@ -1,7 +1,8 @@
 <!-- 
-    PROJECT: POLARIS // GUIDANCE LOG (ULTIMATE EDITION)
+    PROJECT: POLARIS // GUIDANCE LOG 
     AUTHOR: SAJID / ZEP / ALCOR
     STATUS: PEAK AESTHETIC REACHED. COMMS UPDATED.
+    FIX: Implemented robust error handling for API call to prevent "The Void" errors.
     NOTE: If this code looks chaotic, it matches my brain. 
           Gemini helped, but the vibes are 100% manual.
 -->
@@ -455,19 +456,33 @@
                 - Do NOT use emojis (this is a retro terminal). Use text emoticons if needed like :) or -_-.
             `;
 
+            const payload = {
+                contents: [{ parts: [{ text: query }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: personaPrompt }] },
+            };
+
+            let response;
+            let data;
+            
             try {
-                const response = await fetch(apiUrl, {
+                // --- ROBUST FETCH WITH STATUS CHECK ---
+                response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: query }] }],
-                        systemInstruction: { parts: [{ text: personaPrompt }] },
-                        tools: [{ "google_search": {} }]
-                    })
+                    body: JSON.stringify(payload)
                 });
+                
+                // If the HTTP status is not 200-299, throw a detailed error
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("API Call Failed:", response.status, response.statusText, errorBody);
+                    // Throw an error that the catch block will handle
+                    throw new Error(`API returned status ${response.status}: ${response.statusText}`);
+                }
 
-                const data = await response.json();
-                loader.remove();
+                data = await response.json();
+                loader.remove(); // Remove loader on successful JSON parse
 
                 if (data.candidates && data.candidates[0].content) {
                     let reply = data.candidates[0].content.parts[0].text;
@@ -476,11 +491,22 @@
                     reply = reply.replace(/\n/g, '<br>');
                     printOutput(reply, true);
                 } else {
-                    throw new Error("No response");
+                    // This handles cases where the response is 200 OK but the structure is empty/bad
+                    console.warn("API returned 200 but no candidates or content.", data);
+                    throw new Error("No valid content received from API.");
                 }
+
             } catch (e) {
+                // This catches network failures or the errors thrown above
                 loader.remove();
-                printOutput(`<span style="color:var(--error-color)">[ERR]: CONNECTION LOST. THE VOID STARED BACK.</span>`, false);
+                console.error("Total failure in callGemini:", e.message);
+
+                // Use a slightly more specific error message if available
+                const errorMessage = e.message.includes('API returned status') 
+                    ? `[ERR]: API CONNECTION FAILED. (${e.message.split(': ')[0]})`
+                    : `[ERR]: CONNECTION LOST. THE VOID STARED BACK.`;
+
+                printOutput(`<span style="color:var(--error-color)">${errorMessage}</span>`, false);
                 playSound('error');
             }
         }
