@@ -355,7 +355,7 @@
                     <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">STEAM</div>
                     <div class="text-[10px] text-[var(--text-muted)]">GAMING</div>
                 </a>
-                <a href="https://www.roblox.com/users/SDEDIN" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                <a href="https://www.roblox.com/users/215212887/profile" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
                     <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">ROBLOX</div>
                     <div class="text-[10px] text-[var(--text-muted)]">GAMING</div>
                 </a>
@@ -388,9 +388,9 @@
         // --- CONSTANTS & DATA ---
         // Removed TYPING_DELAY as we are now using processing delay based on content length
         const USER_DATA = {
-            name: "Sajid",
+            name: "Zep",
             role: "Digital Resident",
-            details: "Age: 19 | Pronouns: He/Him | Type: ENFJ | Location: GMT+6 (Bangladesh) | Focus: Skadi Lore (Arknights)", 
+            details: "Age: 19 | Pronouns: He/Him | Type: ENFJ | Location: GMT+6 (Bangladesh) | Focus: Friends", 
             bio: `
                 [STATUS]: Greetings.
 
@@ -410,7 +410,7 @@
                 { label: "SERVER", url: "https://discord.gg/W4mRvsaywB", type: "COMMUNITY" }, 
                 { label: "SPOTIFY", url: "https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km", type: "MEDIA" },
                 { label: "STEAM", url: "https://steamcommunity.com/id/alcorzep", type: "GAMING" },
-                { label: "ROBLOX", url: "https://www.roblox.com/users/SDEDIN", type: "GAMING" },
+                { label: "ROBLOX", url: "https://www.roblox.com/users/215212887/profile", type: "GAMING" },
                 { label: "GITHUB", url: "https://github.com/alcorzep", type: "CODE" }, 
             ]
         };
