@@ -9,10 +9,7 @@
     3. FORMAL GREETER AND PERSONALITY FIX: Rewrote boot log and all command responses to adopt a formal, thoughtful, and conversational tone (removed slang). Initial greeting now clearly delineates [SYS] and [OPR] speakers.
     4. BOOT LOG SIMPLIFICATION: Significantly shortened the initial boot log to reduce verbosity ("allat").
     5. SKADI PROTOCOL UPDATE: Implemented the user's specific, highly devoted, and self-aware monologue for the !skadi command, adjusting the format for system/terminal output presentation.
-    6. SCROLL FIX: Removed 'overflow: hidden' from the body tag and changed 'height: 100vh' to 'min-height: 100vh' to allow the main application area to scroll when the content exceeds the viewport height.
-    7. TITLE FONT SIZE REDUCTION: Changed the font size classes on the main H1 title to be smaller.
-    8. DASHBOARD PRELOAD: Removed the full-interface fade-in, allowing the header and the dashboard (social bar) to appear immediately after the boot screen is dismissed.
-    9. **GREETER FIX (New):** Ensured the greeter logic runs only once by refactoring the boot sequence, and reduced the greeter text size/length as requested.
+    6. **SCROLL FIX (New):** Removed 'overflow: hidden' from the body tag and changed 'height: 100vh' to 'min-height: 100vh' to allow the main application area to scroll when the content exceeds the viewport height. The terminal output area retains its internal scroll for chat history.
     
     PERFORMANCE OPTIMIZATION LOG (Existing):
     1. Added 'defer' to all external <script> tags.
@@ -87,7 +84,7 @@
             font-family: 'IBM Plex Mono', monospace;
             /* SVG Noise Filter for texture */
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitch='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-            /* FIX: Changed height to min-height for full page scrolling */
+            /* FIX: Removed overflow: hidden and changed height to min-height for full page scrolling */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -272,14 +269,12 @@
     </div>
 
     <!-- MAIN INTERFACE -->
-    <!-- Removed opacity-0 and transition-opacity to allow Header and Dashboard to be visible instantly after boot overlay is removed -->
-    <main id="main-interface" class="max-w-3xl mx-auto w-full flex flex-col flex-grow">
+    <main id="main-interface" class="max-w-3xl mx-auto w-full flex flex-col opacity-0 transition-opacity duration-1000 flex-grow">
         
         <!-- HEADER -->
         <header class="mb-4 p-4 rounded-sm terminal-box flex justify-between items-start shrink-0">
             <div>
-                <!-- FONT SIZE REDUCED -->
-                <h1 class="glitch-title text-3xl md:text-4xl lg:text-5xl leading-none text-[var(--text-main)] glow-text glitch-anim">
+                <h1 class="glitch-title text-4xl md:text-5xl lg:text-6xl leading-none text-[var(--text-main)] glow-text glitch-anim">
                     POLARIS
                 </h1>
                 <div class="flex items-center gap-2 mt-2 text-xs font-bold tracking-widest text-[var(--text-muted)]">
@@ -383,7 +378,6 @@
             soundEnabled: true,
             isTyping: false,
             isBooting: true, 
-            greetingDisplayed: false, // New flag to prevent double greeting
         };
 
         // --- DOM ELEMENTS ---
@@ -396,6 +390,7 @@
             links: document.getElementById('links-container'),
             prompt: document.getElementById('prompt-label'),
             soundStatus: document.getElementById('sound-status'),
+            // Progress bar elements removed
             skipInstruction: document.getElementById('skip-instruction')
         };
 
@@ -450,38 +445,17 @@
         };
         
         // --- BOOT SEQUENCE ---
-        
-        // Greeter function is now smaller and checks the state flag
         const initialGreeting = async () => {
-            if (state.greetingDisplayed) return; // Crucial check
-            state.greetingDisplayed = true;
-
-            // System prompt
+            await new Promise(r => setTimeout(r, 500));
             printPrompt("System initialization complete. Authentication established.", 'sys');
-            await new Promise(r => setTimeout(r, 300)); // Shorter delay
+            await new Promise(r => setTimeout(r, 500));
             
-            // Print the operator's response as a main output block, using a slightly smaller font size for the first line
+            // Print the operator's response as a main output block
             printOutput(`
-                <div class="text-sm md:text-base text-[var(--text-main)]">Operator Sajid (POLARIS) online. All core systems operational.</div>
-                <div>Awaiting command. Utilize <span class="command-prompt text-[var(--accent-color)]">!help</span> for protocol documentation.</div>
+                <div class="text-[var(--text-main)]">This is Operator Sajid (POLARIS). All core systems are operational.</div>
+                <div>Please enter a command to proceed. Refer to <span class="command-prompt text-[var(--accent-color)]">!help</span> for a list of available protocols.</div>
             `, false);
         };
-        
-        // New function to handle post-boot cleanup and greeting
-        const finalizeBootAndGreet = () => {
-            // Only proceed if still in the booting phase
-            if (!state.isBooting) return; 
-
-            state.isBooting = false;
-            els.skipInstruction.textContent = 'SYSTEM PROMPT: Boot sequence complete. Awaiting user input.';
-
-            // Fade out boot screen
-            els.boot.style.opacity = '0';
-            els.boot.style.pointerEvents = 'none';
-            
-            // Initial Welcome Message (Uses internal flag to prevent double-load)
-            initialGreeting();
-        }
 
         const runBootSequence = async () => {
             // SIMPLIFIED, FORMALIZED BOOT LINES
@@ -508,8 +482,19 @@
             
             await new Promise(r => setTimeout(r, 400));
             
-            // Finalize boot and display greeting
-            finalizeBootAndGreet();
+            // Set final boot state
+            state.isBooting = false;
+            els.skipInstruction.textContent = 'SYSTEM PROMPT: Boot sequence complete. Awaiting user input.';
+
+            // Fade out boot screen
+            els.boot.style.opacity = '0';
+            els.boot.style.pointerEvents = 'none';
+            
+            // Fade in main UI
+            els.main.classList.remove('opacity-0');
+            
+            // Initial Welcome Message (Updated Tone)
+            initialGreeting();
         };
 
         // --- OUTPUT HANDLER ---
@@ -713,8 +698,21 @@
         // Skip boot sequence on click/tap
         els.boot.addEventListener('click', () => {
             if (state.isBooting) {
-                // Now just call the dedicated finalizer function
-                finalizeBootAndGreet();
+                state.isBooting = false;
+                
+                // Clear and update log display
+                els.bootLog.innerHTML = '';
+                els.skipInstruction.textContent = 'SYSTEM PROMPT: Boot sequence complete. Awaiting user input.';
+                
+                // Skip animations
+                els.boot.style.opacity = '0';
+                els.boot.style.pointerEvents = 'none';
+                els.main.classList.remove('opacity-0');
+                
+                // Ensure the initial message is displayed if the sequence was skipped
+                if (els.output.children.length === 0) {
+                     initialGreeting();
+                }
             }
         });
 
@@ -735,16 +733,31 @@
             els.links.innerHTML = html;
         };
 
+        // Theme Toggle
+        window.toggleTheme = () => {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            if (document.body.classList.contains('light-mode')) {
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                icon.setAttribute('data-lucide', 'moon');
+            }
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                 lucide.createIcons();
+            }
+            playSound('click');
+        };
+
         // --- INIT ---
         const init = () => {
             initAudio(); 
-            initDashboard(); // Renders the dashboard links
+            initDashboard();
             
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
                  lucide.createIcons();
             }
 
-            runBootSequence(); // This starts the delay and calls finalizeBootAndGreet upon completion
+            runBootSequence();
             
             // Focus input on click anywhere
             document.addEventListener('click', (e) => {
