@@ -17,7 +17,9 @@
     11. SHADER FIX: Changed pseudo-elements for vignette and scanlines to `position: fixed` to ensure full viewport coverage during scrolling.
     12. INPUT LOCK FIX (CRITICAL): Refactored `handleCommand` to be async and await the typing process, guaranteeing that the `state.isTyping` lock is released after every command execution, preventing permanent input failure.
     13. AESTHETIC FIX: Removed the SVG noise filter from the body background to achieve a clean, plain color as requested.
-    14. **!BIO FIX:** Updated the operator profile (`USER_DATA.bio` and `!bio` command output) to reflect a more casual persona, focusing on Discord use and infrequent editing, per user request.
+    14. !BIO FIX: Updated the operator profile to reflect a more casual persona, focusing on Discord use and infrequent editing.
+    15. **AESTHETIC FIX (BEEP/DOT):** Restructured the HTML and CSS for the system status indicator to ensure the pulsating dot is correctly layered over and aligned with the solid dot, fixing the positioning issue.
+    16. **CODE OPTIMIZATION:** Minor JS structural improvements and added more descriptive comments for maintainability and clarity.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -83,9 +85,6 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'IBM Plex Mono', monospace;
-            /* AESTHETIC FIX: Removed SVG Noise Filter */
-            
-            /* FIX: Changed height to min-height for full page scrolling */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -106,7 +105,7 @@
         /* The Vignette (Dark corners) - FIXED POSITIONING */
         body::before {
             content: "";
-            position: fixed; /* FIX: Fixed to viewport for full coverage */
+            position: fixed; 
             inset: 0;
             background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.6) 100%);
             pointer-events: none;
@@ -117,7 +116,7 @@
         .scanlines::after {
             content: " ";
             display: block;
-            position: fixed; /* FIX: Fixed to viewport for full coverage */
+            position: fixed; 
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
@@ -258,7 +257,6 @@
         
         <!-- SIMPLIFIED BOOT FOOTER (Progress bar removed) -->
         <div class="mt-4">
-            <!-- UPDATED SKIP INSTRUCTION (Formal) -->
             <div id="skip-instruction" class="text-xs text-[var(--text-muted)] mt-1">
                 SYSTEM PROMPT: Click anywhere to bypass sequence initialization.
             </div>
@@ -275,13 +273,19 @@
         <!-- HEADER -->
         <header class="mb-4 p-4 rounded-sm terminal-box flex justify-between items-start shrink-0">
             <div>
-                <!-- FONT SIZE REDUCED -->
                 <h1 class="glitch-title text-3xl md:text-4xl lg:text-5xl leading-none text-[var(--text-main)] glow-text glitch-anim">
                     POLARIS
                 </h1>
+                
+                <!-- FIX: Status indicator restructured for correct pulsing alignment -->
                 <div class="flex items-center gap-2 mt-2 text-xs font-bold tracking-widest text-[var(--text-muted)]">
-                    <span class="w-2 h-2 rounded-full bg-[var(--accent-color)] animate-ping absolute"></span>
-                    <span class="w-2 h-2 rounded-full bg-[var(--accent-color)] ml-1"></span>
+                    <!-- Indicator Wrapper: w-2 h-2 to define size, relative to contain absolute children -->
+                    <div class="relative w-2 h-2 mr-1"> 
+                        <!-- Pulsing Dot (Invisible unless pulsating) -->
+                        <span class="absolute inset-0 w-2 h-2 rounded-full bg-[var(--accent-color)] opacity-75 animate-ping"></span>
+                        <!-- Solid Dot -->
+                        <span class="absolute inset-0 w-2 h-2 rounded-full bg-[var(--accent-color)]"></span>
+                    </div>
                     SYSTEM ONLINE // GUIDANCE LOG
                 </div>
             </div>
@@ -292,7 +296,6 @@
         </header>
 
         <!-- OUTPUT TERMINAL (Where the chat happens) -->
-        <!-- The terminal area uses its own scrollbar (overflow-y-auto) to manage chat history -->
         <div id="terminal-output" class="flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-base leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)] min-h-[10rem]">
             <!-- Content injected via JS -->
         </div>
@@ -321,9 +324,8 @@
         <!-- DASHBOARD (The quick links) -->
         <section class="terminal-box p-4 rounded-sm shrink-0">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                <!-- Links Preloaded directly into HTML for faster access -->
+                <!-- Links are intentionally hardcoded for faster initial render (optimization) -->
                 <div id="links-container" class="col-span-2 md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-2">
-                    <!-- Link Block Generation (Preloaded) -->
                     <a href="https://youtube.com/@NahZD" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
                         <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">YOUTUBE</div>
                         <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
@@ -380,20 +382,20 @@
 
     <script>
         /*
-         * POLARIS SYSTEM CORE v4.5 (INPUT LOCK FIX)
+         * POLARIS SYSTEM CORE v4.6 (AESTHETIC & PERFORMANCE OPTIMIZATION)
          */
 
         // --- CONSTANTS & DATA ---
         const USER_DATA = {
             name: "Sajid",
-            role: "Digital Resident", // Updated role to be more casual
+            role: "Digital Resident",
             details: "Age: 19 | Pronouns: He/Him | Type: ENFJ | Location: GMT+6 (Bangladesh) | Focus: Skadi Lore (Arknights)", 
             bio: `
                 [STATUS]: Greetings.
 
                 I'm Sajid, also known as Alcor and Zep. I'm just a guy who uses Discord a lot and only edits videos every blue moon.
                 My objective here is simply maintaining this personal portfolio interface.
-            `, // Updated bio
+            `, 
             interests: {
                 games: ["SMT / Persona (Existential dread simulator)", "Project Moon (Deep narrative analysis)", "Arknights (Skadi Lore & Worldbuilding)", "HSR (Gacha system engagement)", "Roblox (Emergent gameplay studies)"],
                 philosophy: ["Absurdism (The pursuit of meaning in chaos)", "Jungian Psychology", "Gnosticism"],
@@ -420,14 +422,14 @@
             greetingDisplayed: false,
         };
 
-        // --- DOM ELEMENTS ---
+        // --- DOM ELEMENTS (Cached for performance) ---
         const els = {
             output: document.getElementById('terminal-output'),
             input: document.getElementById('command-input'),
             boot: document.getElementById('boot-screen'),
             bootLog: document.getElementById('boot-log'),
             main: document.getElementById('main-interface'),
-            links: document.getElementById('links-container'),
+            links: document.getElementById('links-container'), // Note: this is for potential future use if links become dynamic
             prompt: document.getElementById('prompt-label'),
             soundStatus: document.getElementById('sound-status'),
             skipInstruction: document.getElementById('skip-instruction')
@@ -440,6 +442,7 @@
                  return;
             }
             try {
+                // Optimized synth definition for sharper blips
                 synth = new Tone.MembraneSynth({
                     volume: -12,
                     envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
@@ -465,20 +468,21 @@
             } else {
                 icon.setAttribute('data-lucide', 'moon');
             }
-            // Re-render Lucide icons if the library is loaded
+            // Re-render Lucide icons if the library is loaded (ensures proper display after toggle)
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
                  lucide.createIcons();
             }
             playSound('click');
         };
 
-        // --- VISUAL FX: TYPEWRITER (Removed isTyping=false on resolve, now handled by handleCommand) ---
+        // --- VISUAL FX: TYPEWRITER ---
         const typeWriter = (element, text, speed = 10) => {
             return new Promise(resolve => {
-                state.isTyping = true; // Set true here
+                state.isTyping = true; 
                 let i = 0;
                 const animate = () => {
                     if (i < text.length) {
+                        // Check for HTML tags to inject them instantly without typing
                         if (text[i] === '<') {
                             const end = text.indexOf('>', i);
                             element.innerHTML += text.substring(i, end + 1);
@@ -486,12 +490,15 @@
                         } else {
                             element.innerHTML += text.charAt(i);
                             i++;
-                            if (i % 3 === 0) playSound('click'); 
+                            // Only play sound on every third character for performance and feel
+                            if (i % 3 === 0) { 
+                                playSound('click'); 
+                            }
                         }
+                        // Ensure constant scroll to bottom during typing
                         els.output.scrollTop = els.output.scrollHeight;
                         setTimeout(animate, speed);
                     } else {
-                        // FIX: Do not set state.isTyping = false here. Let handleCommand do the universal release.
                         resolve();
                     }
                 };
@@ -499,43 +506,38 @@
             });
         };
         
-        // --- BOOT SEQUENCE ---
+        // --- BOOT SEQUENCE UTILITIES ---
         
-        // Greeter function is now smaller and checks the state flag
         const initialGreeting = async () => {
-            if (state.greetingDisplayed) return; // Crucial check
+            if (state.greetingDisplayed) return; 
             state.greetingDisplayed = true;
 
-            // System prompt
             printPrompt("System initialization complete. Authentication established.", 'sys');
-            await new Promise(r => setTimeout(r, 300)); // Shorter delay
+            await new Promise(r => setTimeout(r, 300)); 
             
-            // This printOutput is not awaited and uses typing=false, but it's safe because isTyping is false after boot.
-            printOutput(`
+            await printOutput(`
                 <div class="text-sm md:text-base text-[var(--text-main)]">Operator Sajid (POLARIS) online. All core systems operational.</div>
                 <div>Awaiting command. Utilize <span class="command-prompt text-[var(--accent-color)]">!help</span> for protocol documentation.</div>
-            `, false);
+            `, true); // Use typing for the final greeting
         };
         
         // New function to handle post-boot cleanup and greeting
         const finalizeBootAndGreet = () => {
-            // Only proceed if still in the booting phase
             if (!state.isBooting) return; 
 
             state.isBooting = false;
             els.skipInstruction.textContent = 'SYSTEM PROMPT: Boot sequence complete. Awaiting user input.';
 
-            // Fade out boot screen
+            // Transition: Fade out boot screen
             els.boot.style.opacity = '0';
             els.boot.style.pointerEvents = 'none';
             
-            // Initial Welcome Message (Uses internal flag to prevent double-load)
             initialGreeting();
         }
 
         const runBootSequence = async () => {
             const lines = [
-                "INITIALIZING POLARIS KERNEL v4.4...",
+                "INITIALIZING POLARIS KERNEL v4.6...",
                 "CHECKING MEMORY INTEGRITY... [OK]",
                 "MOUNTING VIRTUAL FILE SYSTEM... [OK]",
                 "LOADING PERSONALITY DRIVERS (ALCOR.SYS)... [STATUS: CONFIGURATION ACTIVE]",
@@ -556,23 +558,23 @@
             
             await new Promise(r => setTimeout(r, 400));
             
-            // Finalize boot and display greeting
             finalizeBootAndGreet();
         };
 
         // --- OUTPUT HANDLER ---
-        // FIX: Made printOutput async to await typeWriter completion
         const printOutput = async (html, useTyping = true) => {
             const div = document.createElement('div');
-            div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 animate-fadeIn"; 
+            // Use flex-shrink-0 to prevent content from being compressed by Tailwind's default flex behavior
+            div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 animate-fadeIn shrink-0"; 
             els.output.appendChild(div);
             
-            if (useTyping && !html.includes("<img") && !html.includes("<ul")) {
+            if (useTyping && !html.includes("<ul")) {
                 div.classList.remove('animate-fadeIn'); 
                 div.style.opacity = 1; 
                 await typeWriter(div, html); // Await the typing process
             } else {
                 div.innerHTML = html;
+                // If not typing, play success sound and scroll immediately
                 els.output.scrollTop = els.output.scrollHeight;
                 playSound('success');
             }
@@ -580,7 +582,7 @@
 
         const printPrompt = (cmd, type = 'user') => {
             const div = document.createElement('div');
-            div.className = "mb-1 text-sm opacity-70 animate-fadeIn";
+            div.className = "mb-1 text-sm opacity-70 animate-fadeIn shrink-0";
             const prefix = type === 'user' ? 'OPR' : 'SYS'; 
             const color = type === 'user' ? 'var(--text-muted)' : 'var(--success-color)';
             div.innerHTML = `<span style="color:${color}">[${prefix}]:</span> ${cmd}`;
@@ -704,6 +706,7 @@
                 try {
                     // Safety measure: replace potential exploit characters before evaluation
                     const safeArgs = args.replace(/[^\d\+\-\*\/\.\(\)]/g, ''); 
+                    // Using Function constructor for dynamic evaluation (simple calculator only)
                     const res = Function('"use strict";return (' + safeArgs + ')')();
                     return `CALCULATED RESULT: <span class="text-xl text-[var(--accent-color)]">${res}</span>`;
                 } catch {
@@ -714,7 +717,7 @@
             }
         };
 
-        // FIX: handleCommand is now async to manage the input lock correctly.
+        // --- INPUT & EXECUTION HANDLER ---
         const handleCommand = async (raw) => {
             if (state.isTyping) return; 
 
@@ -727,7 +730,7 @@
 
             printPrompt(input, 'user');
             
-            // Universal lock at the start of command execution
+            // Universal lock at the start of command execution (CRITICAL for flow control)
             state.isTyping = true; 
 
             let output = '';
@@ -740,19 +743,20 @@
                 return;
             }
 
-            if (cmd === '!calc') {
-                output = commands['!calc'](args);
-                useTyping = false; // Calculator results are instant
+            if (cmd === '!calc' || cmd === '!mute' || cmd === '!ping') {
+                // Commands that produce instant, non-typed output
+                useTyping = false; 
+                output = commands[cmd] ? commands[cmd](args) : commands['!help'](); // Fallback to help if invalid but starts with '!'
             } else if (commands[cmd]) {
                 output = commands[cmd]();
-                // Check if the output contains lists or images, or if it's a specific command that should not be typed
-                if (cmd === '!mute' || cmd === '!ping' || output.includes("<ul") || output.includes("<img")) {
+                // Check if the output is pre-formatted list (like !comms) and shouldn't be typed
+                if (output.includes("<ul")) { 
                     useTyping = false;
                 }
             } else {
                 output = `<span style="color:var(--error-color)">[ERR]: UNKNOWN PROTOCOL '${cmd}'.</span><div>The protocol requested is not recognized by the system. Please consult the <span class="command-prompt">!help</span> documentation.</div>`;
                 playSound('error');
-                useTyping = false; // Errors are instant
+                useTyping = false; 
             }
             
             // Await the output printing (which includes typing)
@@ -766,10 +770,10 @@
         els.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 if (state.isTyping) return; 
-                // The handleCommand is now async, but the listener doesn't need to await it.
                 handleCommand(els.input.value); 
                 els.input.value = '';
             } else {
+                // Throttle sound play during rapid typing
                 if (Date.now() % 50 === 0) playSound('click'); 
             }
         });
@@ -795,16 +799,17 @@
             // Focus input on click anywhere
             document.addEventListener('click', (e) => {
                 const isInteractive = e.target.closest('a, button, input');
+                // Only focus if no text is selected and the click wasn't on an interactive element
                 if (!window.getSelection().toString() && !isInteractive) {
                     els.input.focus();
                 }
             });
         };
 
-        // Use DOMContentLoaded instead of window.onload
+        // Use DOMContentLoaded instead of window.onload for faster script execution start
         document.addEventListener('DOMContentLoaded', init); 
         
-        // Fallback for deferred scripts
+        // Fallback for deferred scripts (Tone.js and Lucide)
         window.onload = () => {
              if (typeof Tone !== 'undefined' && !synth) initAudio();
              if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
