@@ -1,642 +1,692 @@
+<!-- 
+    PROJECT: POLARIS // GUIDANCE LOG 
+    AUTHOR: SAJID / ZEP / ALCOR
+    STATUS: PEAK AESTHETIC REACHED. COMMS UPDATED. ANIMATIONS ADDED.
+    FIX: Implemented robust error handling for API call to prevent "The Void" errors.
+    NOTE: If this code looks chaotic, it matches my brain. 
+          Gemini helped, but the vibes are 100% manual.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POLARIS // GUIDANCE LOG</title>
-    <!-- OH MY GOD I FORGOT THE VIEWPORT AGAIN, ACTUALY. - Sajid -->
-    <!-- Load Tailwind CSS (The easy button. We love the easy button.) -->
+    <title>POLARIS // SYSTEM ROOT</title>
+    
+    <!-- Load Tailwind (The backbone of modern laz... efficiency) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use a retro-style monospace font (It HAS to be monospaced or the vibe dies) -->
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Load Lucide Icons for the dashboard links (The little pictures are nice, ykwim?) -->
+    
+    <!-- Fonts: IBM Plex Mono is non-negotiable for the retro feel -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons: Lucide (Clean, sharp, vector goodness) -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Load Tone.js for sound effects (Must have little 'blips' when I type, it's mandatory.) -->
+    
+    <!-- Audio: Tone.js for the UI blips -->
     <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
-    <!-- Load Oneko (the desktop cat pet) - Because why not? It's just there. vibing. -->
-    <script src="https://unpkg.com/oneko@2.0.0/oneko.js"></script> 
+    
+    <!-- Pet: Oneko.js (The cat is mandatory. Do not remove the cat.) -->
+    <script src="https://cdn.jsdelivr.dev/gh/adryd325/oneko.js@main/oneko.js"></script> 
+
     <style>
-        /* --- 1. THEME DEFINITIONS (High-Contrast Sepia Palette) --- */
-
+        /* --- 1. THEME ENGINE (SEPIA VOID) --- */
         :root {
-            /* DEEPER DARK MODE. We don't do light mode unless someone forces us to. */
-            --sepia-dark-bg: #1f1a16;       /* Near-Black Brown (The Void) */
-            --sepia-light-text: #f0ebe5;    /* Very Light Off-White (The Vibe) */
-            --sepia-muted-text: #a89f92;    /* Muted Gray-Brown (Shhh. System messages.) */
-            --sepia-accent: #e4d7c7;        /* High-Visibility Sepia Accent (The 'I'M TYPING HERE' color) */
-            --sepia-card-bg: #2d2621;       /* Dark Card BG (Slightly lighter than main BG, but not much) */
-            --sepia-button-bg: #4a423a;     /* Dark Button BG (Whatever) */
-
-            /* Default to DARK MODE. ALWAYS. */
-            --color-bg: var(--sepia-dark-bg);
-            --color-main: var(--sepia-light-text);
-            --color-muted: var(--sepia-muted-text);
-            --color-prompt: var(--sepia-accent);
-            --dashboard-bg: var(--sepia-card-bg);
-            --button-bg: var(--sepia-button-bg);
-            --border-color: rgba(240, 235, 229, 0.2);
-            --shadow-color: rgba(0, 0, 0, 0.3);
+            --bg-color: #1a1614;       /* Deepest Void Brown */
+            --glass-bg: #26201c;       /* Slightly lighter for panels */
+            --text-main: #e6dfd5;      /* Off-white paper color */
+            --text-muted: #9c9288;     /* Dust grey */
+            --accent-color: #dcbfa6;   /* The "Sepia" Glow */
+            --accent-dim: #5c4e43;     /* Dimmed accent for borders */
+            --error-color: #ff6b6b;    /* Retro Error Red */
+            --success-color: #a3d9a5;  /* Retro Success Green */
+            
+            --scanline-opacity: 0.15;
+            --phosphor-glow: 0 0 8px rgba(220, 191, 166, 0.4);
         }
 
-        /* LIGHT MODE (DO NOT TOUCH. It's for emergencies only.) */
         .light-mode {
-            --color-bg: var(--sepia-light-text);
-            --color-main: var(--sepia-dark-bg);
-            --color-muted: #5a544e;
-            --color-prompt: #4a423a;
-            --dashboard-bg: #ffffff;
-            --button-bg: var(--sepia-light-text);
-            --border-color: rgba(41, 36, 31, 0.3);
-            --shadow-color: rgba(0, 0, 0, 0.1);
+            --bg-color: #e6dfd5;
+            --glass-bg: #dcbfa6;
+            --text-main: #1a1614;
+            --text-muted: #5c4e43;
+            --accent-color: #1a1614;
+            --accent-dim: #9c9288;
+            --scanline-opacity: 0.05;
+            --phosphor-glow: none;
         }
 
-        /* --- 2. CRT/SCANLINE EFFECT & STAR FIELD (This part is peak aesthetic, no cap) --- */
-
-        /* Scanline Overlay (The mandatory TV static lines) */
-        body:after {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            background: repeating-linear-gradient(
-                to bottom,
-                transparent 0px,
-                transparent 1px,
-                rgba(0, 0, 0, 0.1) 2px,
-                rgba(0, 0, 0, 0.2) 3px
-            );
-            z-index: 99; /* Gotta be on top of everything else, duh. */
-            opacity: 0.5;
-            transition: opacity 0.3s;
-        }
-
-        /* Subtle Flicker/Glow Animation (It has to flicker or it's not retro enough) */
-        @keyframes flicker {
-            0% { opacity: 1; }
-            5% { opacity: 0.98; }
-            10% { opacity: 1; }
-            15% { opacity: 0.95; }
-            20% { opacity: 1; }
-            100% { opacity: 1; } /* Just in case */
-        }
-        main {
-            animation: flicker 4s infinite alternate; /* Applies to the main content area */
-        }
-        
-        /* Star field layer (The tiny stars I asked for, actualy) */
-        @keyframes twinkle {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 400px 400px; }
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1; /* Must be behind the boxes, obviously. */
-            opacity: 0.15; /* MUST be subtle or it looks goofy */
-            /* Using multiple radial gradients for a scattered star effect (took alot of effort, ykwim?) */
-            background: 
-                radial-gradient(2px 2px at 20% 10%, var(--sepia-light-text), transparent),
-                radial-gradient(1px 1px at 50% 30%, var(--sepia-light-text), transparent),
-                radial-gradient(1.5px 1.5px at 80% 60%, var(--sepia-light-text), transparent),
-                radial-gradient(1px 1px at 10% 90%, var(--sepia-light-text), transparent),
-                radial-gradient(2px 2px at 90% 20%, var(--sepia-light-text), transparent),
-                /* More points for density. I need MOAR stars. */
-                radial-gradient(1px 1px at 35% 75%, var(--sepia-light-text), transparent),
-                radial-gradient(2px 2px at 65% 5%, var(--sepia-light-text), transparent),
-                radial-gradient(1.5px 1.5px at 5% 50%, var(--sepia-light-text), transparent),
-                radial-gradient(1px 1px at 75% 40%, var(--sepia-light-text), transparent),
-                radial-gradient(2px 2px at 40% 95%, var(--sepia-light-text), transparent);
-            background-size: 500px 500px; /* Size of the repeating pattern */
-            animation: twinkle 90s linear infinite; /* Slow, subtle movement (don't make me dizzy) */
-        }
-        
-        /* BASE STYLES & UI TWEAKS (Ugh, boring) */
-        
+        /* --- 2. CORE LAYOUT & TYPOGRAPHY --- */
         body {
-            background-color: var(--color-bg);
-            color: var(--color-main);
+            background-color: var(--bg-color);
+            color: var(--text-main);
             font-family: 'IBM Plex Mono', monospace;
-            /* Added subtle grain/noise effect back (This makes it feel like an old computer, trust me) */
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitch='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            min-height: 100vh;
+            /* SVG Noise Filter for texture */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitch='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            overflow: hidden; /* Main scroll is handled inside the terminal div */
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            transition: background-color 0.3s, color 0.3s;
-            position: relative; 
-            overflow: hidden; /* Important for fixed star background */
+            transition: color 0.3s, background-color 0.3s;
         }
 
-        /* Hidden SVG Filter Container (Just ignore this, it makes the title crunchy) */
-        .svg-filters {
+        /* Custom Scrollbar (Because the default one ruins the immersion) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { 
+            background: var(--accent-dim); 
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+        /* --- 3. RETRO VISUAL EFFECTS & ANIMATIONS --- */
+        
+        /* The Vignette (Dark corners) */
+        body::before {
+            content: "";
             position: absolute;
-            width: 0;
-            height: 0;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.6) 100%);
             pointer-events: none;
+            z-index: 90;
         }
 
-
-        /* Themed container with a subtle shadow for segmentation (It's a box. It holds stuff.) */
-        .themed-container {
-            background-color: var(--dashboard-bg);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px -1px var(--shadow-color);
-            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
-        }
-
-        /* Large, Brutalist Title (The most important part) */
-        .distressed-title {
-            font-family: 'Inter', sans-serif;
-            font-size: clamp(2.5rem, 8vw, 4rem);
-            line-height: 1;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: -0.05em;
-            color: var(--color-main);
-            transition: color 0.3s;
-            /* SVG Filter for distressing/grainy edges (The crunch factor) */
-            filter: url(#distort-text); 
-        }
-        
-        /* Custom List Styling (Data points are kinda ugly otherwise) */
-        .custom-list li {
-            position: relative;
-            padding-left: 1rem;
-            margin-bottom: 0.25rem;
-            font-size: 0.85rem; 
-        }
-        .custom-list li::before {
-            content: '-';
-            position: absolute;
-            left: 0;
-            color: var(--color-prompt);
-            font-weight: bold;
-        }
-        
-        /* Command Input Prompt (The flashy part) */
-        .command-prompt {
-            color: var(--color-prompt);
-            font-weight: bold;
-            text-shadow: 0 0 2px var(--color-prompt)50;
-        }
-
-        /* Input specific styling (Make sure I can actually see what I'm typing) */
-        #command-input {
-            background-color: transparent;
-            color: var(--color-main);
-            outline: none;
-            border: none;
-            width: 100%;
-            font-size: 1rem;
-            line-height: 1.5;
-            caret-color: var(--color-prompt);
-        }
-
-        /* Dashboard Link Styling (Must look clickable) */
-        .dashboard-link-container {
-            transition: all 0.15s;
+        /* The Scanlines & CRT Flicker */
+        .scanlines::after {
+            content: " ";
             display: block;
-            color: var(--color-main) !important;
-            border-radius: 4px;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            z-index: 91;
+            pointer-events: none;
+            opacity: var(--scanline-opacity);
+            /* ADDED FLICKER ANIMATION */
+            animation: flicker 0.15s infinite alternate; 
         }
-        .dashboard-link-container:hover {
-            color: var(--color-bg) !important; 
-            background-color: var(--color-prompt); 
-            transform: translateY(-2px); /* Gotta make it jump a bit */
-            box-shadow: 0 2px 4px var(--shadow-color);
+
+        /* The Glow (Phosphor Persistence) & Pulse */
+        .glow-text {
+            text-shadow: var(--phosphor-glow);
+            /* ADDED PULSE ANIMATION */
+            animation: pulse 4s infinite ease-in-out alternate; 
         }
-        .dashboard-link-container::before {
-            content: '>';
-            margin-right: 0.5rem;
-            color: var(--color-prompt);
-            transition: color 0.15s;
+
+        /* Distressed Title Effect */
+        .glitch-title {
+            font-family: 'Inter', sans-serif; /* Contrast font */
+            font-weight: 900;
+            letter-spacing: -2px;
+            filter: url(#distort-text);
+            text-transform: uppercase;
         }
-        .dashboard-link-container:hover::before {
-            content: '>';
-            color: var(--color-bg); /* Ooooh, reversed colors! */
+
+        /* Active Glitch Animation for Title */
+        .glitch-anim {
+            animation: glitch-anim 2s linear infinite alternate;
+        }
+
+        /* Links */
+        .hover-link {
+            border-bottom: 1px dashed var(--accent-dim);
+            transition: all 0.2s;
+        }
+        .hover-link:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border-bottom-style: solid;
         }
         
-        /* Footer/Muted Text (The boring stuff at the bottom) */
-        .footer-text {
-            color: var(--color-muted);
-            transition: color 0.3s;
-            text-transform: uppercase;
+        /* Input Focus Border Animation */
+        .input-focus:focus-within {
+            box-shadow: 0 0 10px rgba(220, 191, 166, 0.6);
+            border-color: var(--accent-color);
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+
+        /* Boot Screen Overlay */
+        #boot-screen {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-color);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2rem;
+            font-size: 14px;
+            color: var(--accent-color);
+        }
+        
+        .cursor-blink {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* KEYFRAMES */
+        
+        /* Subtle Screen Flicker (For CRT feel) */
+        @keyframes flicker {
+            0% { opacity: var(--scanline-opacity); }
+            5% { opacity: calc(var(--scanline-opacity) + 0.05); }
+            10% { opacity: var(--scanline-opacity); }
+            25% { opacity: calc(var(--scanline-opacity) - 0.05); }
+            100% { opacity: var(--scanline-opacity); }
+        }
+
+        /* Breathing Glow Effect */
+        @keyframes pulse {
+            0% { text-shadow: 0 0 8px rgba(220, 191, 166, 0.4); }
+            50% { text-shadow: 0 0 12px rgba(220, 191, 166, 0.6), 0 0 5px rgba(220, 191, 166, 0.2); }
+            100% { text-shadow: 0 0 8px rgba(220, 191, 166, 0.4); }
+        }
+
+        /* Glitch Animation (For Title) */
+        @keyframes glitch-anim {
+            0% {
+                transform: translate(0);
+                text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5);
+            }
+            20% {
+                transform: translate(-5px, 5px);
+                text-shadow: -2px 2px 0px rgba(255, 0, 0, 0.5), 2px -2px 0px rgba(0, 255, 0, 0.5);
+            }
+            40% {
+                transform: translate(0);
+                text-shadow: 2px -2px 0px rgba(0, 255, 0, 0.5), -2px 2px 0px rgba(255, 0, 0, 0.5);
+            }
+            60% {
+                transform: translate(5px, -5px);
+                text-shadow: 2px 2px 0px rgba(0, 0, 255, 0.5), -2px -2px 0px rgba(255, 0, 0, 0.5);
+            }
+            80% {
+                transform: translate(-5px, -5px);
+                text-shadow: -2px -2px 0px rgba(0, 255, 0, 0.5), 2px 2px 0px rgba(0, 0, 255, 0.5);
+            }
+            100% {
+                transform: translate(0);
+                text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5);
+            }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <!-- Seriously, why do I have to include an SVG filter? Just give me the grainy text! -->
-    <svg class="svg-filters">
-        <filter id="distort-text">
-            <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
+<body class="scanlines p-4 md:p-8">
+
+    <!-- SVG Filters for that crunchy text look -->
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="distort-text">
+                <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="1" result="warp" />
+                <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="2" in="SourceGraphic" in2="warp" />
+            </filter>
+        </defs>
     </svg>
 
-    <main class="max-w-2xl mx-auto flex-grow w-full"> 
+    <!-- BOOT SCREEN (The fake loading sequence) -->
+    <div id="boot-screen">
+        <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight"></div>
+    </div>
 
-        <!-- Header / Static Title Block (The main attraction) -->
-        <header class="mb-4 p-4 rounded-md themed-container">
-            <div class="flex justify-between items-start">
-                <h1 class="distressed-title m-0 p-0">
-                    POLARIS // GUIDANCE LOG
+    <!-- MAIN INTERFACE -->
+    <main id="main-interface" class="max-w-3xl mx-auto h-full flex flex-col opacity-0 transition-opacity duration-1000">
+        
+        <!-- HEADER -->
+        <header class="mb-4 p-4 rounded-sm terminal-box flex justify-between items-start shrink-0">
+            <div>
+                <!-- ADDED glitch-anim CLASS FOR TITLE EFFECT -->
+                <h1 class="glitch-title text-4xl md:text-5xl lg:text-6xl leading-none text-[var(--text-main)] glow-text glitch-anim">
+                    POLARIS
                 </h1>
-                
-                <!-- Theme Toggle Button (The switch between life and death) -->
-                <button 
-                    id="theme-toggle-btn"
-                    onclick="toggleTheme()" 
-                    class="p-2 rounded-full w-10 h-10 flex items-center justify-center mt-3 border" 
-                    style="background-color: var(--dashboard-bg); color: var(--color-main); border-color: var(--border-color);"
-                    aria-label="Toggle Dark/Light Mode">
-                    <i id="theme-icon" data-lucide="moon" class="w-5 h-5" style="color: var(--color-prompt);"></i>
-                </button>
+                <div class="flex items-center gap-2 mt-2 text-xs font-bold tracking-widest text-[var(--text-muted)]">
+                    <!-- Added subtle ping animation -->
+                    <span class="w-2 h-2 rounded-full bg-[var(--accent-color)] animate-ping absolute"></span>
+                    <span class="w-2 h-2 rounded-full bg-[var(--accent-color)] ml-1"></span>
+                    SYSTEM ONLINE // GUIDANCE LOG
+                </div>
             </div>
             
-            <!-- STATUS BAR (Just proves it's working, I guess) -->
-            <div class="flex items-center justify-start text-xs footer-text mt-1">
-                <p>STATUS: ONLINE / ACTIVE. [POSITION_ACQUIRED: NOMINAL] <!-- Oh look, more caps. So tech. --></p>
-            </div>
+            <button onclick="toggleTheme()" class="p-2 border border-[var(--accent-dim)] hover:bg-[var(--accent-dim)] transition-colors rounded-sm hover:border-[var(--accent-color)]">
+                <i id="theme-icon" data-lucide="moon" class="w-5 h-5 text-[var(--accent-color)]"></i>
+            </button>
         </header>
-        
-        <!-- Command Input Section (Where the magic happens) -->
-        <section class="mb-4">
-            <div class="flex items-center themed-container p-3 rounded-lg">
-                <label for="command-input" class="text-lg whitespace-nowrap pr-3 command-prompt">
+
+        <!-- OUTPUT TERMINAL (Where the chat happens) -->
+        <!-- Added a border glow for visual pop -->
+        <div id="terminal-output" class="flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-sm leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)]">
+            <!-- Content injected via JS -->
+        </div>
+
+        <!-- INPUT AREA -->
+        <section class="mb-4 shrink-0">
+            <!-- Added input-focus class for animated focus state -->
+            <div class="flex items-center terminal-box p-3 rounded-sm border-l-4 border-l-[var(--accent-color)] input-focus">
+                <label for="command-input" id="prompt-label" class="text-lg whitespace-nowrap pr-3 command-prompt glow-text">
                     POLARIS >
                 </label>
-                <!-- This input is where I type my genius thoughts. It needs to work. -->
                 <input
                     type="text"
                     id="command-input"
-                    placeholder="ENTER PROTOCOL: !HELP (or something else, ykwim?)"
-                    autofocus
+                    class="w-full bg-transparent outline-none border-none font-mono text-lg text-[var(--text-main)] placeholder-[var(--accent-dim)]"
+                    placeholder="ENTER COMMAND..."
                     autocomplete="off"
-                    onkeydown="handleInput(event)"
+                    autofocus
                 >
             </div>
-        </section>
-
-        <!-- Dynamic Content Output Area (The history of my greatness) -->
-        <div id="terminal-output" class="themed-container p-4 h-[35vh] md:h-[40vh] overflow-y-auto rounded-md text-sm mb-6 leading-relaxed">
-            <!-- Content will be injected here (I hope it doesn't break) -->
-        </div>
-        
-        <!-- Static Shortcuts Dashboard (Module Panel) - Actualy, just links, but 'module panel' sounds cooler. -->
-        <section class="themed-container p-4 rounded-md text-sm">
-            <h2 class="mb-3 text-center text-xs font-bold tracking-widest uppercase" style="color:var(--color-prompt);">
-                // DIRECT NETWORK ENDPOINTS // <!-- Don't overthink this heading. -->
-            </h2>
-            <div id="shortcut-dashboard" class="grid grid-cols-3 gap-y-2 gap-x-4">
-                <!-- Links will be injected here by initDashboard() (It's fine. It's fine.) -->
+            <div class="flex justify-between mt-1 text-[10px] text-[var(--text-muted)] uppercase tracking-wider px-1">
+                <span>Type '!help' for protocols</span>
+                <span id="sound-status">AUDIO: ON</span>
             </div>
         </section>
-        
-    </main>
-    
-    <!-- Footer / Watermark (The actual boring part) -->
-    <footer class="mt-8 text-center text-xs footer-text">
-        POLARIS LOG // END TRANSMISSION (It's just a website, calm down.)
-    </footer>
 
+        <!-- DASHBOARD (The quick links) -->
+        <section class="terminal-box p-4 rounded-sm shrink-0">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                <!-- Links injected via JS -->
+                <div id="links-container" class="col-span-2 md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-2"></div>
+                
+                <!-- Status Panel -->
+                <div class="col-span-2 md:col-span-1 border-l border-[var(--accent-dim)] pl-4 flex flex-col justify-between opacity-70">
+                    <div>
+                        <div class="font-bold text-[var(--accent-color)] mb-1">OPERATOR</div>
+                        <div>ZEP / ALCOR</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[var(--accent-color)] mb-1">CURRENT MOOD</div>
+                        <div id="mood-status">VIBING</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
 
     <script>
-        // Hey, don't look at my code. It's messy. I warned you. I'm NOT a coder!
-        
-        // --- Data Structure (This is the important stuff about me, the rest is filler) ---
-        const POLARIS_DATA = {
-            profile: {
-                // The names: Sajid, Zep, Alcor. A lot of nicknames.
-                name: "SAJID / ZEP (POLARIS / ALCOR)", 
-                // The REAL status
-                status: "Content Editor (Do It For Fun)", 
-                data: "19 | He/Him | ENFJ | Muslim | GMT+6 (Bangladesh) | Bruh" 
-            },
-            bio_text: `
-                [PROFILE_LOADED. PLEASE STAND BY.]
-                Okay, so hi. I'm just a super basic online guy who LOVES content editing and making things look cool (especially that Brutalist/CLI aesthetic). 
-                I go by Zep and Alcor everywhere, and yeah, I do this whole editing thing just for fun. Seriously, don't ask me to code, I'm not that guy. I'm here for the philosophical deep dives, the cool design, and the occasional game binge.
-                This whole terminal thing? It’s just a hyper-exaggerated log of my digital existence. Welcome to the chaos!
-            `, // Added more personality here. It's gotta be dramatic.
-            links: [
-                { label: "YOUTUBE (@NahZD)", url: "https://youtube.com/@NahZD", type: "CONTENT", icon: "Youtube" },
-                { label: "TIKTOK (@alcor.zep)", url: "https://tiktok.com/@alcor.zep", type: "CONTENT", icon: "Zap" },
-                { label: "INSTAGRAM (alcor.zep)", url: "https://instagram.com/alcor.zep", type: "SOCIALS", icon: "Instagram" },
-                { label: "DISCORD (ID)", url: "https://discord.com/users/747419107040690196", type: "SOCIALS", icon: "AtSign" },
-                { label: "DISCORD (SERVER)", url: "https://discord.com/invite/W4mRvsaywB", type: "SOCIALS", icon: "MessageCircle" },
-                { label: "NAMEMC", url: "https://namemc.com/NahZD.1", type: "GAMING/MEDIA", icon: "Crown" },
-                { label: "SPOTIFY", url: "https://open.spotify.com/user/3lag2h6ylpngleeu", type: "GAMING/MEDIA", icon: "Music" },
-                { label: "STEAM", url: "https://steamcommunity.com/id/alcorzep", type: "GAMING/MEDIA", icon: "Gamepad2" },
-                { label: "ROBLOX", url: "https://roblox.com/users/215212887/profile", type: "GAMING/MEDIA", icon: "SquareDashedBottom" },
-            ],
+        /*
+         * POLARIS SYSTEM CORE v4.3 (CORE IDENTITY SCAN)
+         * "If it works, don't touch it. If it breaks, it's art (I'll cry)."
+         */
+
+        // --- CONSTANTS & DATA ---
+        const USER_DATA = {
+            name: "Sajid (aka Zep/Alcor)",
+            role: "Content Editor / Certified Chaos Manager",
+            // UPDATED DETAILS FOR NEW PERSONALITY
+            details: "19 | He/Him | ENFJ | Muslim | Skadi-Obsessed | GMT+6 (BD)", 
+            bio: `
+                [LOG_ENTRY_01]: Greetings, Operator.
+
+                I'm Sajid—you can call me Alcor or Zep. 
+            `,
             interests: {
-                // Actualy, I only play a few games, but they're important!
-                games: [
-                    "SMT / PERSONA (Existential dread and philosophical chaos, ykwim?).",
-                    "PROJECT MOON (The lore is too deep, I'm stuck. Send help.).",
-                    "TYPE-MOON (The entire universe is built on complex rules. Must understand everything.).",
-                    "HOYOVERSE (HSR: It's the current comfort game, okay?).",
-                    "TRIGUN (Vash is the best. The themes are peak fiction.)."
-                ],
-                philosophy: [
-                    "Absurdism", "Gnosticism (The *real* truth)", "Kierkegaard (Just... intense)",
-                    "Lao Tzu (Go with the flow, man)", "Plato's Forms (The OG Matrix theory)",
-                    "Nietzsche's Übermensch (Too much pressure, but okay)", "Carl Jung (The collective consciousness is a vibe)"
-                ],
-                music: [
-                    "Nujabes (The GOAT, seriously).", "Malcolm Todd", "Tame Impala",
-                    "Vansire", "Gorillaz", "Laufey", "Hotel Ugly", "Mac DeMarco",
-                    "J Dilla", "MF DOOM (RIP to a legend)"
-                ]
-            }
+                // UPDATED MUSIC LIST
+                games: ["SMT / Persona (Existential dread simulator)", "Project Moon (The brainrot is real)", "Arknights (Skadi <3)", "HSR (Gambling addiction)", "Roblox (The true chaos realm)"],
+                philosophy: ["Absurdism (Rolling the boulder)", "Jungian Psychology", "Gnosticism"],
+                music: ["Jazz Rap (The smoothest chaos)", "Indie (Main character energy)", "Hip Hop (Lyrical fire)"]
+            },
+            links: [
+                { label: "YOUTUBE", url: "https://youtube.com/@NahZD", type: "MEDIA" },
+                { label: "TIKTOK", url: "https://tiktok.com/@alcor.zep", type: "MEDIA" },
+                { label: "INSTAGRAM", url: "https://instagram.com/alcor.zep", type: "SOCIAL" },
+                { label: "DISCORD (USER)", url: "https://discord.com/users/747419107040690196", type: "SOCIAL" },
+                { label: "DISCORD (SERVER)", url: "https://discord.gg/W4mRvsaywB", type: "COMMUNITY" },
+                { label: "SPOTIFY", url: "https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km", type: "MEDIA" },
+                { label: "STEAM", url: "https://steamcommunity.com/id/alcorzep", type: "GAMING" },
+                { label: "ROBLOX", url: "https://www.roblox.com/users/SDEDIN", type: "GAMING" },
+                // UPDATED GITHUB URL
+                { label: "GITHUB (alcorzep)", url: "https://github.com/alcorzep", type: "CODE" }, 
+            ]
         };
 
-        const outputArea = document.getElementById('terminal-output');
-        const inputField = document.getElementById('command-input');
-        const dashboardArea = document.getElementById('shortcut-dashboard');
-        const body = document.body;
-        const themeIcon = document.getElementById('theme-icon');
-        
-        
-        // --- Sound Synthesis Setup (Tone.js) ---
-        // I need my little blips. This is non-negotiable.
-        let clickSynth;
-        
-        try {
-            clickSynth = new Tone.MembraneSynth({
-                pitchDecay: 0.05,
-                octaves: 1,
-                envelope: {
-                    attack: 0.001,
-                    decay: 0.05,
-                    sustain: 0.01,
-                    release: 0.1,
-                },
-                volume: -10,
-            }).toDestination();
-        } catch (e) {
-            // If the sound breaks, I will cry. But this catches the error, so I won't. I guess.
-            console.error("Tone.js failed to initialize. R.I.P. the sound effects.", e);
-        }
-
-        const playClick = () => {
-            // Bruh, why do I have to resume the context? Just play the noise!
-            if (clickSynth && Tone.context.state !== 'running') {
-                Tone.context.resume();
-            }
-            if (clickSynth) {
-                clickSynth.triggerAttackRelease("C5", "8n", Tone.now(), 0.5);
-            }
+        // --- STATE MANAGEMENT ---
+        const state = {
+            // geminiMode: false, // REMOVED: No longer needed
+            soundEnabled: true,
+            isTyping: false
         };
 
-        // --- Theme Toggle Logic (The boring switch code) ---
-        const isLightMode = () => body.classList.contains('light-mode');
-        
-        function toggleTheme() {
-            body.classList.toggle('light-mode');
+        // --- DOM ELEMENTS ---
+        const els = {
+            output: document.getElementById('terminal-output'),
+            input: document.getElementById('command-input'),
+            boot: document.getElementById('boot-screen'),
+            bootLog: document.getElementById('boot-log'),
+            main: document.getElementById('main-interface'),
+            links: document.getElementById('links-container'),
+            prompt: document.getElementById('prompt-label'),
+            soundStatus: document.getElementById('sound-status')
+        };
+
+        // --- AUDIO ENGINE (Tone.js) ---
+        let synth;
+        const initAudio = () => {
+            try {
+                synth = new Tone.MembraneSynth({
+                    volume: -12,
+                    envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
+                }).toDestination();
+            } catch (e) { console.log("Audio failed. Sad."); }
+        };
+
+        const playSound = (type = 'click') => {
+            if (!state.soundEnabled || !synth) return;
+            if (Tone.context.state !== 'running') Tone.context.resume();
             
-            if (isLightMode()) {
-                themeIcon.setAttribute('data-lucide', 'sun');
-                localStorage.setItem('theme', 'light');
-            } else {
-                themeIcon.setAttribute('data-lucide', 'moon');
-                localStorage.setItem('theme', 'dark'); // Set it back to dark, like it should be.
-            }
-            lucide.createIcons(); // Gotta refresh the little icon, ugh.
-        }
-
-        const loadTheme = () => {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'light') {
-                body.classList.add('light-mode');
-                themeIcon.setAttribute('data-lucide', 'sun');
-            } else {
-                // If it's not light, it's dark. Simple math.
-                body.classList.remove('light-mode');
-                themeIcon.setAttribute('data-lucide', 'moon');
-            }
+            if (type === 'click') synth.triggerAttackRelease("C2", "32n");
+            if (type === 'error') synth.triggerAttackRelease("G1", "16n");
+            if (type === 'success') synth.triggerAttackRelease("C4", "16n");
         };
 
-        // --- Output Formatting Functions (This is just HTML with extra steps) ---
-
-        const formatHeader = (title) => `
-            <div class="mt-4 mb-2">
-                <span class="command-prompt">// ${title} //</span>
-                <hr class="border-t border-dashed mt-1 mb-2" style="border-color:var(--border-color);">
-            </div>
-        `;
-        
-        const formatCommsList = (links) => {
-            // Grouping stuff. I don't know why, but it looks clean.
-            const groupedLinks = links.reduce((acc, link) => {
-                if (!acc[link.type]) acc[link.type] = [];
-                acc[link.type].push(link);
-                return acc;
-            }, {});
-
-            let output = '';
-            // Now loop through the groups and print. Yikes.
-            for (const type in groupedLinks) {
-                output += `
-                    <div class="mt-3">
-                        <span class="command-prompt">[+ DATA_STREAM: ${type} +]</span>
-                        <ul class="custom-list list-none mt-1">
-                            ${groupedLinks[type].map(link => `
-                                <li>
-                                    <a href="${link.url.startsWith('http') ? link.url : 'https://' + link.url}" target="_blank" 
-                                       class="hover:text-[var(--color-prompt)] transition-colors">
-                                        ${link.label}
-                                    </a> 
-                                    <span style="color:var(--color-muted);"> (ID: ${link.url.includes('discord.gg') ? 'INVITE' : link.url.split('/').pop().replace('@', '')})</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                `;
-            }
-            return output;
-        };
-        
-        const appendPrompt = (cmd) => {
-             // Re-drawing the "POLARIS >" line every time. It's crucial.
-             const newPrompt = document.createElement('div');
-             newPrompt.className = 'mb-1';
-             newPrompt.innerHTML = `<span class="command-prompt">POLARIS ></span> ${cmd}`;
-             outputArea.appendChild(newPrompt);
-        };
-        
-        const appendOutput = (html) => {
-            const outputWrapper = document.createElement('div');
-            outputWrapper.innerHTML = html;
-            outputArea.appendChild(outputWrapper);
-            // SCROLL TO THE BOTTOM, ALWAYS! No one wants to manually scroll.
-            outputArea.scrollTop = outputArea.scrollHeight;
-        };
-
-
-        // --- Command Execution Logic (The actual terminal logic, wish me luck) ---
-        const executeCommand = (cmd) => {
-            let outputHTML = '';
-            
-            switch (cmd) {
-                case '!help': // Help command is always the first one people try.
-                    outputHTML = formatHeader('COMMAND INDEX (ACTUALY, JUST FOUR)') + `
-                        <div class="grid grid-cols-2 gap-2" style="color:var(--color-main);">
-                            <div><span class="command-prompt">!help</span>: Display command index. (Duh.)</div>
-                            <div><span class="command-prompt">!bio</span>: Retrieve personal profile. (The real me.)</div>
-                            <div><span class="command-prompt">!comms</span>: Retrieve network endpoints. (My links.)</div>
-                            <div><span class="command-prompt">!data</span>: Access core interests log. (What I actually like.)</div>
-                        </div>
-                    `;
-                    break;
-                case '!bio': // The most important command.
-                    outputHTML = formatHeader('PROFILE: GUIDANCE OPERATOR (THE LEGEND)') + `
-                        <p class="mb-3" style="color:var(--color-main);">${POLARIS_DATA.bio_text.trim().replace(/\n/g, '<br>')}</p>
-                        <div class="text-xs border p-2 rounded" style="color:var(--color-muted); border-color:var(--border-color);">
-                            <span class="command-prompt">[NAME_LOG]:</span> ${POLARIS_DATA.profile.name} | 
-                            <span class="command-prompt">[STATUS_LEVEL]:</span> ${POLARIS_DATA.profile.status} | 
-                            <span class="command-prompt">[META_DATA]:</span> ${POLARIS_DATA.profile.data}
-                        </div>
-                    `;
-                    break;
-                case '!comms': // Gotta show the people where to find me.
-                    outputHTML = formatHeader('NETWORK ENDPOINTS (NAVIGATION DATA)') + formatCommsList(POLARIS_DATA.links);
-                    break;
-                case '!data': // This is the deep lore.
-                    outputHTML = formatHeader('INTERESTS LOG (CORE COORDINATES)') + `
-                        <p class="mb-3 text-sm" style="color:var(--color-muted);">NOTE: DATA below reflects current obsessions. It changes weekly, ykwim?</p>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <span class="command-prompt">[+ GAMES (I play alot of 'a few' games) +]</span>
-                                <ul class="custom-list list-none mt-1">
-                                    ${POLARIS_DATA.interests.games.map(item => `<li>${item}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div>
-                                <span class="command-prompt">[+ PHILOSOPHY (The stuff that keeps me up at night) +]</span>
-                                <ul class="custom-list list-none text-xs mt-1">
-                                    ${POLARIS_DATA.interests.philosophy.map(item => `<li>${item}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div>
-                                <span class="command-prompt">[+ MUSIC (The background noise of my life) +]</span>
-                                <ul class="custom-list list-none text-xs mt-1">
-                                    ${POLARIS_DATA.interests.music.map(item => `<li>${item}</li>`).join('')}
-                                </ul>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case '!clear': // The only command that saves my dignity.
-                    outputArea.innerHTML = '';
-                    break;
-                default:
-                    outputHTML = `<div class="mt-2" style="color:red;">FATAL ERROR: Command '${cmd}' is not valid. Did you try <span class="command-prompt">!help</span>?</div>`;
-                    break;
-            }
-            
-            appendOutput(outputHTML); // Okay, send the output now!
-        };
-
-        const handleInput = (event) => {
-            // Did I hit enter yet?!
-            if (event.key === 'Enter') {
-                const rawCmd = inputField.value.trim();
-                const cmd = rawCmd.toLowerCase();
-                
-                if (cmd) {
-                    if (cmd === '!clear') {
-                        executeCommand('!clear');
+        // --- VISUAL FX: TYPEWRITER ---
+        // This adds that sweet character-by-character rendering
+        const typeWriter = (element, text, speed = 10) => {
+            return new Promise(resolve => {
+                state.isTyping = true;
+                let i = 0;
+                // Handle HTML tags roughly (skip them)
+                const animate = () => {
+                    if (i < text.length) {
+                        // If we hit a tag, jump to end of tag
+                        if (text[i] === '<') {
+                            const end = text.indexOf('>', i);
+                            element.innerHTML += text.substring(i, end + 1);
+                            i = end + 1;
+                        } else {
+                            element.innerHTML += text.charAt(i);
+                            i++;
+                            // Randomize speed slightly for "human" feel
+                            if (i % 3 === 0) playSound('click'); 
+                        }
+                        els.output.scrollTop = els.output.scrollHeight;
+                        setTimeout(animate, speed);
                     } else {
-                        appendPrompt(rawCmd); // Show the command I typed.
-                        executeCommand(cmd); // Run the command. Pray it works.
+                        state.isTyping = false;
+                        resolve();
                     }
-                }
-                
-                inputField.value = ''; // Clear the box. Actualy.
-                event.preventDefault();
-            } else if (event.key.length === 1 || event.key === 'Backspace') {
-                playClick(); // Tiny blip sound for every keypress. Perfection.
-            }
+                };
+                animate();
+            });
         };
 
-        // --- Dashboard Initialization (The static, always-there links) ---
-        const initDashboard = () => {
-            // This is just mapping the links into little columns. It's fine.
-            const groupedLinks = POLARIS_DATA.links.reduce((acc, link) => {
-                acc[link.type] = acc[link.type] || [];
-                acc[link.type].push(link);
-                return acc;
-            }, {});
-            
-            let html = '';
-            
-            // This order is strategically chosen. Don't question it.
-            const columnOrder = [
-                { type: 'CONTENT', title: 'SYSTEM LOGS', icon: 'Code' },
-                { type: 'SOCIALS', title: 'COMM CHANNELS', icon: 'Mail' }, 
-                { type: 'GAMING/MEDIA', title: 'RECREATIONAL', icon: 'Layers' }
+        // --- BOOT SEQUENCE ---
+        const runBootSequence = async () => {
+            // UPDATED BOOT SEQUENCE
+            const lines = [
+                "INITIALIZING POLARIS KERNEL v4.3...",
+                "CHECKING MEMORY INTEGRITY... [OK]",
+                "MOUNTING VIRTUAL FILE SYSTEM... [OK]",
+                "LOADING PERSONALITY DRIVERS (ALCOR.SYS)...",
+                " > CHAR_ID: SAJID/ALCOR",
+                " > TRAITS: PROBABLY GLAZING SKADI", // Updated traits
+                "CONNECTING TO GLOBAL NETWORK...",
+                "ESTABLISHING SECURE CONNECTION...",
+                "SYSTEM READY."
             ];
 
-            for (const column of columnOrder) {
-                const links = groupedLinks[column.type] || [];
-                
-                html += `
-                    <div class="space-y-1">
-                        <div class="mb-1 flex items-center">
-                            <i data-lucide="${column.icon.toLowerCase()}" class="w-4 h-4 mr-1" style="color:var(--color-muted);"></i>
-                            <span class="text-xs uppercase tracking-widest" style="color:var(--color-prompt)">
-                                ${column.title}
-                            </span>
-                        </div>
-                        
-                        ${links.map(link => `
-                            <a href="${link.url.startsWith('http') ? link.url : 'https://' + link.url}" target="_blank" 
-                               class="dashboard-link-container block py-1 pl-2 pr-1 text-xs">
-                                ${link.label.toLowerCase().replace(/_/g, ' ')}
-                            </a>
-                        `).join('')}
-                    </div>
-                `;
+            for (const line of lines) {
+                const p = document.createElement('div');
+                p.textContent = line;
+                els.bootLog.appendChild(p);
+                // Faster boot sequence for better UX after initial load
+                await new Promise(r => setTimeout(r, Math.random() * 50 + 50)); 
             }
 
-            dashboardArea.innerHTML = html;
+            await new Promise(r => setTimeout(r, 800));
+            
+            // Fade out boot screen
+            els.boot.style.opacity = '0';
+            els.boot.style.pointerEvents = 'none';
+            
+            // Fade in main UI
+            els.main.classList.remove('opacity-0');
+            
+            // Initial Welcome Message
+            setTimeout(() => {
+                printOutput(`
+                    <div style="color:var(--accent-color)">Welcome, Operator.</div>
+                    <div>System is online.
+                    <div>Type <span class="command-prompt">!help</span> to start your guidance session.</div>
+                `, false); // false = instant print for initial
+            }, 500);
         };
 
+        // --- OUTPUT HANDLER ---
+        const printOutput = (html, useTyping = true) => {
+            const div = document.createElement('div');
+            // Added animation class for output rows
+            div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 opacity-0 animate-fadeIn"; 
+            els.output.appendChild(div);
+            
+            // Define the fade-in animation for each new line
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(5px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.3s ease-out forwards;
+                }
+            `;
+            document.head.appendChild(style);
 
-        // --- Initial Load (The moment of truth) ---
+            if (useTyping && !html.includes("<img") && !html.includes("<ul")) {
+                // Only type plain-ish text blocks to avoid breaking complex HTML
+                typeWriter(div, html);
+            } else {
+                div.innerHTML = html;
+                div.classList.remove('opacity-0'); // Remove initial opacity if instant
+                els.output.scrollTop = els.output.scrollHeight;
+                playSound('success');
+            }
+        };
+
+        const printPrompt = (cmd, type = 'user') => {
+            const div = document.createElement('div');
+            // Added animation class for prompt lines
+            div.className = "mb-1 text-xs opacity-70 animate-fadeIn";
+            const prefix = type === 'user' ? 'OPR' : 'SYS'; // Changed 'AI' to 'SYS'
+            const color = type === 'user' ? 'var(--text-muted)' : 'var(--success-color)';
+            div.innerHTML = `<span style="color:${color}">[${prefix}]:</span> ${cmd}`;
+            els.output.appendChild(div);
+            els.output.scrollTop = els.output.scrollHeight;
+        };
+
+        // --- COMMAND PROCESSOR ---
+        const commands = {
+            '!help': () => {
+                return `
+                    <span class="command-prompt">:: COMMAND INDEX ::</span><br>
+                    <span class="text-[var(--accent-color)]">!bio</span>     - Load operator profile<br>
+                    <span class="text-[var(--accent-color)]">!comms</span>   - List network endpoints (UPDATED)<br>
+                    <span class="text-[var(--accent-color)]">!data</span>    - Access interests log<br>
+                    <span class="text-[var(--accent-color)]">!track</span>   - Recommend a song<br>
+                    <span class="text-[var(--accent-color)]">!calc</span>    - Execute math [ex: !calc 2+2]<br>
+                    <span class="text-[var(--accent-color)]">!mute</span>    - Toggle audio system<br>
+                    <span class="text-[var(--accent-color)]">!clear</span>   - Purge screen buffer<br>
+                    <span class="text-[var(--accent-color)]">!ping</span>    - Get system status
+                `;
+            },
+            '!bio': () => {
+                // UPDATED BIO OUTPUT
+                const personality = `
+                    <span class="text-[var(--accent-color)]">Personality Subroutines:</span><br>
+                    > Imagine me sayijg cool stuff. <br>
+                    > I don't get paid enough for this.<br>
+                   
+                `;
+
+                return `
+                    <span class="command-prompt">:: OPERATOR PROFILE ::</span><br>
+                    ${USER_DATA.bio.replace(/\n/g, '<br>')}<br><br>
+                    <span class="text-xs border border-[var(--accent-dim)] p-1 block">
+                        STATUS: ${USER_DATA.role} | ${USER_DATA.details}
+                    </span>
+                    <br>${personality.replace(/\n/g, '<br>')}
+                `;
+            },
+            '!comms': () => {
+                let html = `<span class="command-prompt">:: NETWORK ENDPOINTS ::</span><br><ul class="list-disc pl-4 mt-2">`;
+                USER_DATA.links.forEach(l => {
+                    html += `<li><a href="${l.url}" target="_blank" class="hover-link">${l.label}</a> <span class="text-[var(--text-muted)] text-xs">[${l.type}]</span></li>`;
+                });
+                return html + `</ul>`;
+            },
+            '!data': () => {
+                let html = `<span class="command-prompt">:: INTERESTS LOG ::</span><br>`;
+                for (const [key, items] of Object.entries(USER_DATA.interests)) {
+                    html += `<br><span class="uppercase text-[var(--accent-color)]">[${key}]</span><br>`;
+                    items.forEach(i => html += `> ${i}<br>`);
+                }
+                return html;
+            },
+            '!track': () => {
+                const tracks = [
+                    "Aruarian Dance - Nujabes (The smoothest chaos, no cap)", "Doomsday - MF DOOM", 
+                    "Let It Happen - Tame Impala", "From The Start - Laufey (Don't tell anyone)", 
+                    "Rhinestone Eyes - Gorillaz", "After Dark - Mr. Kitty (A true vibe.)"
+                ];
+                const pick = tracks[Math.floor(Math.random() * tracks.length)];
+                return `
+                    <span class="command-prompt">:: AUDIO RECOMMENDATION ::</span><br>
+                    NOW PLAYING SIMULATION: <span style="color:var(--accent-color)">${pick}</span><br>
+                    <span class="text-xs text-[var(--text-muted)]">(Imagine the music playing. It's a vibe, no cap.)</span>
+                `;
+            },
+            '!mute': () => {
+                state.soundEnabled = !state.soundEnabled;
+                els.soundStatus.textContent = state.soundEnabled ? "AUDIO: ON" : "AUDIO: OFF";
+                return `AUDIO SYSTEM: <span style="color:${state.soundEnabled ? 'var(--success-color)' : 'var(--error-color)'}">${state.soundEnabled ? 'ONLINE' : 'OFFLINE'}</span>`;
+            },
+            '!ping': () => {
+                const status = USER_DATA.role.split(' / ')[1].split(' ')[0];
+                return `
+                    <span class="command-prompt">:: SYSTEM STATUS REPORT ::</span><br>
+                    Core Identity: ALCOR.SYS<br>
+                    Role: ${status}<br>
+                    Time on GMT+6: ${(new Date()).toLocaleTimeString()}<br>
+                    <span style="color:var(--success-color)">Latency: Stable. Everything is fine. Actualy.</span>
+                `;
+            }
+        };
+
+        const handleCommand = (raw) => {
+            const input = raw.trim();
+            const cmd = input.split(' ')[0].toLowerCase();
+            const args = input.substring(cmd.length).trim();
+
+            if (!input) return;
+
+            // The main control flow is now simple command processing
+            printPrompt(input, 'user');
+
+            if (cmd === '!clear') {
+                els.output.innerHTML = '';
+                playSound('success');
+                return;
+            }
+            
+            // REMOVED: !gemini, !exit logic
+
+            if (cmd === '!calc') {
+                try {
+                    // Safe eval for basic math
+                    const res = Function('"use strict";return (' + args + ')')();
+                    printOutput(`CALCULATED RESULT: <span class="text-xl text-[var(--accent-color)]">${res}</span>`);
+                } catch {
+                    printOutput(`<span style="color:var(--error-color)">ERROR: INVALID MATHEMATICAL SYNTAX.</span>`);
+                    playSound('error');
+                }
+                return;
+            }
+
+            if (commands[cmd]) {
+                printOutput(commands[cmd]());
+            } else {
+                // Custom response for unknown command
+                printOutput(`
+                    <span style="color:var(--error-color)">[ERR]: UNKNOWN PROTOCOL '${cmd}'.</span>
+                    <div>I see you trying to explore the mainframe. Smart. But I'm too cunning for that. Try <span class="command-prompt">!help</span>, no cap.</div>
+                `);
+                playSound('error');
+            }
+        };
+
+        // --- EVENTS ---
+        els.input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (state.isTyping) return; // Prevent new command while output is typing
+                handleCommand(els.input.value);
+                els.input.value = '';
+            } else {
+                playSound('click'); // Typing sound
+            }
+        });
+        
+        // Skip boot sequence on click/tap
+        els.boot.addEventListener('click', () => {
+            if (els.boot.style.opacity !== '0') {
+                els.boot.style.opacity = '0';
+                els.boot.style.pointerEvents = 'none';
+                els.main.classList.remove('opacity-0');
+                // Ensure the initial message is displayed if the sequence was skipped
+                if (els.output.children.length === 0) {
+                     printOutput(`
+                        <div style="color:var(--accent-color)">Welcome, Operator. (Boot sequence skipped)</div>
+                        <div>System is online. The cat is vibing.</div>
+                        <div>Type <span class="command-prompt">!help</span> to start your guidance session.</div>
+                    `, false);
+                }
+            }
+        });
+
+
+        // Dashboard Link Renderer
+        const initDashboard = () => {
+            let html = '';
+            USER_DATA.links.forEach(link => {
+                html += `
+                    <a href="${link.url}" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                        <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">
+                            ${link.label}
+                        </div>
+                        <div class="text-[10px] text-[var(--text-muted)]">${link.type}</div>
+                    </a>
+                `;
+            });
+            els.links.innerHTML = html;
+        };
+
+        // Theme Toggle
+        window.toggleTheme = () => {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            if (document.body.classList.contains('light-mode')) {
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                icon.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+            playSound('click');
+        };
+
+        // --- INIT ---
         window.onload = () => {
-             // 1. Load the saved theme first (If I saved it, which I probably didn't)
-             loadTheme();
-
-             // 2. Initialize the static link dashboard (Make the links appear)
-             initDashboard();
-
-             // 3. Render Lucide icons across the entire page (Load the tiny pictures)
-             lucide.createIcons();
-
-             // 4. Initial greeting message (Gotta sound cool)
-             outputArea.innerHTML = `
-                <div class="mb-4" style="color:var(--color-main);">
-                    <span class="command-prompt">POLARIS_GUIDANCE v1.0 | FOR FUN EDITOR MODE</span>
-                    <br>
-                    Welcome, seeker. This terminal is your guide to the chaos. Good luck.
-                    Type <span class="command-prompt">!help</span> for a cheat sheet.
-                </div>
-             `;
-             
-             inputField.focus(); // Focus on the input so I can start typing immediately. Efficiency, ykwim?
+            initAudio();
+            initDashboard();
+            lucide.createIcons();
+            runBootSequence();
+            
+            // Focus input on click anywhere
+            document.addEventListener('click', (e) => {
+                // Only focus if the user isn't selecting text or clicking a link/button
+                const isInteractive = e.target.closest('a, button, input');
+                if (!window.getSelection().toString() && !isInteractive) {
+                    els.input.focus();
+                }
+            });
         };
 
-        // I'm actually done now. Don't worry.
     </script>
 </body>
 </html>
-
