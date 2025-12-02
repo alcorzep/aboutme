@@ -1,10 +1,13 @@
 <!-- 
     PROJECT: POLARIS // GUIDANCE LOG 
     AUTHOR: SAJID / ZEP / ALCOR
-    STATUS: PEAK AESTHETIC REACHED. RGB GLITCH INITIATED. BIO REVISED.
-    FIX 2.1: AI personality shifted to "TikTok aesthetic influencer."
-             Added !hash and !base64 codes for useful data ops.
-             Boot skip clarification made persistent and highly visible.
+    STATUS: PROCESSING DELAY & FORMATTING FIX
+    
+    UPDATE LOG:
+    1. DELAY LOGIC: Removed character-by-character typing. Implemented a calculated processing delay (1-3 seconds) based on content length using `calculateDelay()`.
+    2. UX: The system input is now locked for the duration of the calculated delay, simulating authentic "SYSTEM BUSY" time.
+    3. FORMATTING FIX: Updated the output for multi-line commands (e.g., !help, !data) to use flexbox for fixed-width alignment, ensuring clean, columnar display instead of collapsing spaces.
+    4. DELAYED BOOT: Initial 3-second delay before boot sequence starts is maintained.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -13,23 +16,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POLARIS // SYSTEM ROOT</title>
     
-    <!-- Load Tailwind (The backbone of modern laz... efficiency) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CRITICAL PERFORMANCE OPTIMIZATION: Use Preconnect for faster handshake -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.dev">
     
-    <!-- Fonts: IBM Plex Mono is non-negotiable for the retro feel -->
+    <!-- Load Tailwind and defer script execution for faster parsing -->
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    
+    <!-- Fonts: Preload and use IBM Plex Mono for the retro feel -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Icons: Lucide (Clean, sharp, vector goodness) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Icons: Lucide (Deferred) -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
     
-    <!-- Audio: Tone.js for the UI blips -->
-    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.js"></script>
+    <!-- Audio: Tone.js for the UI blips (Deferred) -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer></script>
     
-    <!-- Pet: Oneko.js (The cat is mandatory. Do not remove the cat.) -->
-    <script src="https://cdn.jsdelivr.dev/gh/adryd325/oneko.js@main/oneko.js"></script> 
-
     <style>
-        /* --- 1. THEME ENGINE (SEPIA VOID) & NEW RGB VARIABLES --- */
+        /* --- 1. THEME ENGINE (SEPIA VOID) --- */
         :root {
             --bg-color: #1a1614;       /* Deepest Void Brown */
             --glass-bg: #26201c;       /* Slightly lighter for panels */
@@ -38,17 +45,9 @@
             --accent-color: #dcbfa6;   /* The "Sepia" Glow */
             --accent-dim: #5c4e43;     /* Dimmed accent for borders */
             --error-color: #ff6b6b;    /* Retro Error Red */
-            --success-color: #a3d9a5;  /* Retro Success Green */
-            --ai-color: var(--accent-color); /* FIX: Match AI color to Sepia accent */
             
             --scanline-opacity: 0.15;
             --phosphor-glow: 0 0 8px rgba(220, 191, 166, 0.4);
-
-            /* NEW RGB Glitch Colors and Variables */
-            --color-r: #ff004c;
-            --color-g: #00ff7e;
-            --color-b: #00c7ff;
-            --chroma-shift: 2px; 
         }
 
         .light-mode {
@@ -58,28 +57,25 @@
             --text-muted: #5c4e43;
             --accent-color: #1a1614;
             --accent-dim: #9c9288;
-            --ai-color: #1a1614; /* Match AI color to dark text color in light mode */
             --scanline-opacity: 0.05;
             --phosphor-glow: none;
         }
-        
+
         /* --- 2. CORE LAYOUT & TYPOGRAPHY --- */
+        html {
+            height: 100%; /* Ensure html fills the viewport */
+        }
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'IBM Plex Mono', monospace;
-            /* SVG Noise Filter for texture */
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitch='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-            overflow: hidden; 
-            height: 100vh;
+            min-height: 10vh;
             display: flex;
             flex-direction: column;
             transition: color 0.3s, background-color 0.3s;
-            /* NEW: Subtle whole-screen jitter */
-            animation: jitter 0.1s infinite alternate;
         }
 
-        /* Custom Scrollbar (Because the default one ruins the immersion) */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
         ::-webkit-scrollbar-thumb { 
@@ -88,23 +84,23 @@
         }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
 
-        /* --- 3. RETRO VISUAL EFFECTS & ANIMATIONS --- */
+        /* --- 3. RETRO VISUAL EFFECTS & ANIMATIONS (FIXED POSITIONING) --- */
         
-        /* The Vignette (Dark corners) */
+        /* The Vignette (Dark corners) - FIXED POSITIONING */
         body::before {
             content: "";
-            position: absolute;
+            position: fixed; 
             inset: 0;
             background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.6) 100%);
             pointer-events: none;
             z-index: 90;
         }
 
-        /* The Scanlines & CRT Flicker */
+        /* The Scanlines & CRT Flicker - FIXED POSITIONING */
         .scanlines::after {
             content: " ";
             display: block;
-            position: absolute;
+            position: fixed; 
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
@@ -115,47 +111,21 @@
             animation: flicker 0.15s infinite alternate; 
         }
 
-        /* The Glow (Phosphor Persistence) & Pulse */
+        /* --- REVERTED GLOW (SUBTLE PHOSPHOR EFFECT) --- */
         .glow-text {
+            /* Subtle text-shadow instead of chromatic aberration */
             text-shadow: var(--phosphor-glow);
-            animation: pulse 4s infinite ease-in-out alternate; 
+            filter: none; /* Remove blur filter */
+            animation: none; /* Remove subtle flicker animation */
         }
 
-        /* Glitch Title & Chromatic Aberration */
+        /* Distressed Title Effect */
         .glitch-title {
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Inter', sans-serif; /* Contrast font */
             font-weight: 900;
             letter-spacing: -2px;
             filter: url(#distort-text);
             text-transform: uppercase;
-        }
-
-        /* NEW: Chromatic Aberration Effect for text */
-        .chroma-text {
-            position: relative;
-            /* R and B channels offset */
-            text-shadow: 
-                calc(var(--chroma-shift) * -1) 0 0 var(--color-r),
-                calc(var(--chroma-shift) * 1) 0 0 var(--color-b);
-            mix-blend-mode: screen; 
-            transition: all 0.2s; /* Transition for theme change */
-        }
-        
-        /* NEW: RGB Hue Shift Animation */
-        .rgb-vibe .rgb-glitch {
-            filter: hue-rotate(0deg);
-            animation: rgb-shift 5s linear infinite;
-        }
-        @keyframes rgb-shift {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
-
-        /* NEW: Screen Jitter Keyframes (Applied to body) */
-        @keyframes jitter {
-            0% { transform: translate(0.3px, 0.3px); }
-            50% { transform: translate(-0.3px, -0.3px); }
-            100% { transform: translate(0.3px, 0.3px); }
         }
 
         /* Active Glitch Animation for Title */
@@ -180,6 +150,22 @@
             border-color: var(--accent-color);
             transition: box-shadow 0.3s, border-color 0.3s;
         }
+        
+        /* --- INPUT LOCK STYLING --- */
+        .input-locked .command-prompt {
+             color: var(--error-color) !important; /* Change prompt color to error red */
+             opacity: 0.5; /* Dim the prompt */
+             animation: none; /* Stop the pulse/glow */
+             text-shadow: none; /* Remove shadows when locked */
+        }
+        
+        .input-locked input {
+            cursor: wait; /* Change cursor to indicate busy status */
+        }
+        .input-locked input::placeholder {
+            color: var(--error-color) !important; /* Change placeholder to error color */
+        }
+        
 
         /* Boot Screen Overlay */
         #boot-screen {
@@ -191,28 +177,19 @@
             flex-direction: column;
             justify-content: flex-end;
             padding: 2rem;
-            font-size: 14px;
+            font-size: 16px; 
             color: var(--accent-color);
-            cursor: pointer; /* Explicitly indicate clickability */
+            cursor: pointer; 
+            transition: opacity 0.5s;
         }
         
+        /* Blinking cursor for boot and output */
         .cursor-blink {
             animation: blink 1s step-end infinite;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-        /* AI Commentary Style */
-        .ai-commentary {
-            font-size: 0.8rem;
-            color: var(--ai-color);
-            margin-top: 8px;
-            padding-left: 12px;
-            /* FIX: Changed border color to use the accent color directly */
-            border-left: 2px solid var(--accent-color);
-            opacity: 0.9;
-        }
         
-        /* FIX: Moved fadeIn keyframes here to prevent redundant style tag injection */
+        /* New line fade-in animation (for instant text/prompts) */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
@@ -223,7 +200,6 @@
 
         /* KEYFRAMES */
         
-        /* Subtle Screen Flicker (For CRT feel) */
         @keyframes flicker {
             0% { opacity: var(--scanline-opacity); }
             5% { opacity: calc(var(--scanline-opacity) + 0.05); }
@@ -232,14 +208,6 @@
             100% { opacity: var(--scanline-opacity); }
         }
 
-        /* Breathing Glow Effect */
-        @keyframes pulse {
-            0% { text-shadow: 0 0 8px rgba(220, 191, 166, 0.4); }
-            50% { text-shadow: 0 0 12px rgba(220, 191, 166, 0.6), 0 0 5px rgba(220, 191, 166, 0.2); }
-            100% { text-shadow: 0 0 8px rgba(220, 191, 166, 0.4); }
-        }
-
-        /* Glitch Animation (For Title) */
         @keyframes glitch-anim {
             0% {
                 transform: translate(0);
@@ -283,25 +251,39 @@
     <!-- BOOT SCREEN (The fake loading sequence) -->
     <div id="boot-screen">
         <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight"></div>
-        <!-- FIX: Added persistent, highly visible skip clarification -->
-        <div id="boot-skip-clarification" class="text-center mt-4 text-xs tracking-widest opacity-80 glow-text cursor-blink" style="color:var(--accent-color);">
-            (CLICK ANYWHERE TO SKIP BOOT SEQUENCE)
+        
+        <!-- SIMPLIFIED BOOT FOOTER -->
+        <div class="mt-4">
+            <div id="skip-instruction" class="text-xs text-[var(--text-muted)] mt-1">
+                SYSTEM PROMPT: Click anywhere to bypass sequence initialization.
+            </div>
+            
+            <div class="mt-2">
+                <span class="text-[var(--accent-color)]">INITIALIZING...</span><span class="cursor-blink">_</span>
+            </div>
         </div>
     </div>
 
     <!-- MAIN INTERFACE -->
-    <main id="main-interface" class="max-w-3xl mx-auto h-full flex flex-col opacity-0 transition-opacity duration-1000">
+    <main id="main-interface" class="max-w-3xl mx-auto w-full flex flex-col flex-grow">
         
         <!-- HEADER -->
         <header class="mb-4 p-4 rounded-sm terminal-box flex justify-between items-start shrink-0">
             <div>
-                <!-- ADDED chroma-text CLASS FOR RGB EFFECT -->
-                <h1 class="glitch-title text-4xl md:text-5xl lg:text-6xl leading-none text-[var(--text-main)] glow-text glitch-anim chroma-text">
+                <!-- Title now uses the subtle phosphor glow -->
+                <h1 class="glitch-title text-3xl md:text-4xl lg:text-5xl leading-none text-[var(--text-main)] glow-text glitch-anim">
                     POLARIS
                 </h1>
+                
+                <!-- Status indicator restructured for correct pulsing alignment -->
                 <div class="flex items-center gap-2 mt-2 text-xs font-bold tracking-widest text-[var(--text-muted)]">
-                    <span class="w-2 h-2 rounded-full bg-[var(--accent-color)] animate-ping absolute"></span>
-                    <span class="w-2 h-2 rounded-full bg-[var(--accent-color)] ml-1"></span>
+                    <!-- Indicator Wrapper: w-2 h-2 to define size, relative to contain absolute children -->
+                    <div class="relative w-2 h-2 mr-1"> 
+                        <!-- Pulsing Dot (Invisible unless pulsating) -->
+                        <span class="absolute inset-0 w-2 h-2 rounded-full bg-[var(--accent-color)] opacity-75 animate-ping"></span>
+                        <!-- Solid Dot -->
+                        <span class="absolute inset-0 w-2 h-2 rounded-full bg-[var(--accent-color)]"></span>
+                    </div>
                     SYSTEM ONLINE // GUIDANCE LOG
                 </div>
             </div>
@@ -312,22 +294,23 @@
         </header>
 
         <!-- OUTPUT TERMINAL (Where the chat happens) -->
-        <div id="terminal-output" class="flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-sm leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)]">
+        <!-- SUBTLE GLOW APPLIED HERE -->
+        <div id="terminal-output" class="h-96 md:h-[60vh] flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-base leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)] glow-text">
             <!-- Content injected via JS -->
         </div>
 
         <!-- INPUT AREA -->
         <section class="mb-4 shrink-0">
-            <!-- Added input-focus class for animated focus state -->
-            <div class="flex items-center terminal-box p-3 rounded-sm border-l-4 border-l-[var(--accent-color)] input-focus">
-                <!-- ADDED rgb-glitch and chroma-text TO PROMPT FOR MAX VIBE -->
-                <label for="command-input" id="prompt-label" class="text-lg whitespace-nowrap pr-3 command-prompt glow-text rgb-glitch chroma-text">
+            <!-- Added id "input-container" to target lock visuals -->
+            <div id="input-container" class="flex items-center terminal-box p-3 rounded-sm border-l-4 border-l-[var(--accent-color)] input-focus">
+                <!-- Command prompt also uses the subtle phosphor glow -->
+                <label for="command-input" id="prompt-label" class="text-lg whitespace-nowrap pr-3 command-prompt glow-text">
                     POLARIS >
                 </label>
                 <input
                     type="text"
                     id="command-input"
-                    class="w-full bg-transparent outline-none border-none font-mono text-lg text-[var(--text-main)] placeholder-[var(--accent-dim)]"
+                    class="w-full bg-transparent outline-none border-none font-mono text-xl text-[var(--text-main)] placeholder-[var(--accent-dim)]"
                     placeholder="ENTER COMMAND..."
                     autocomplete="off"
                     autofocus
@@ -341,20 +324,56 @@
 
         <!-- DASHBOARD (The quick links) -->
         <section class="terminal-box p-4 rounded-sm shrink-0">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                <!-- Links injected via JS -->
-                <div id="links-container" class="col-span-2 md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-2"></div>
-                
-                <!-- Status Panel -->
-                <div class="col-span-2 md:col-span-1 border-l border-[var(--accent-dim)] pl-4 flex flex-col justify-between opacity-70">
-                    <div>
-                        <div class="font-bold text-[var(--accent-color)] mb-1">OPERATOR</div>
-                        <div>SAJID / ALCOR</div>
-                    </div>
-                    <div>
-                        <div class="font-bold text-[var(--accent-color)] mb-1">CURRENT MOOD</div>
-                        <div id="mood-status">VIBING</div>
-                    </div>
+            <!-- LINKS: Universal 3-column grid enforced here -->
+            <div id="links-container" class="grid grid-cols-3 gap-3 text-xs mb-4 pb-4 border-b border-[var(--accent-dim)]">
+                <!-- Links are intentionally hardcoded for faster initial render (optimization) -->
+                <a href="https://youtube.com/@NahZD" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">YOUTUBE</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
+                </a>
+                <a href="https://tiktok.com/@alcor.zep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">TIKTOK</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
+                </a>
+                <a href="https://instagram.com/@alcor.zep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">INSTAGRAM</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">SOCIAL</div>
+                </a>
+                <a href="https://discord.com/users/747419107040690196" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">DISCORD</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">SOCIAL</div>
+                </a>
+                <a href="https://discord.gg/W4mRvsaywB" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">SERVER</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">COMMUNITY</div>
+                </a>
+                <a href="https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">SPOTIFY</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
+                </a>
+                <a href="https://steamcommunity.com/id/alcorzep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">STEAM</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">GAMING</div>
+                </a>
+                <a href="https://www.roblox.com/users/SDEDIN" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">ROBLOX</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">GAMING</div>
+                </a>
+                <a href="https://github.com/alcorzep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">GITHUB (alcorzep)</div>
+                    <div class="text-[10px] text-[var(--text-muted)]">CODE</div>
+                </a>
+            </div>
+            
+            <!-- Status Panel -->
+            <div class="opacity-70 grid grid-cols-2 gap-4">
+                <div>
+                    <div class="font-bold text-[var(--accent-color)] mb-1">OPERATOR</div>
+                    <div>ZEP / ALCOR</div>
+                </div>
+                <div>
+                    <div class="font-bold text-[var(--accent-color)] mb-1">CURRENT MOOD</div>
+                    <div id="mood-status">OPERATIONAL</div>
                 </div>
             </div>
         </section>
@@ -363,417 +382,299 @@
 
     <script>
         /*
-         * POLARIS SYSTEM CORE v5.5 (TIKTOK AI VIBE INITIATED)
+         * POLARIS SYSTEM CORE v4.16 (PROCESSING DELAY & FORMATTING)
          */
 
         // --- CONSTANTS & DATA ---
+        // Removed TYPING_DELAY as we are now using processing delay based on content length
         const USER_DATA = {
-            name: "Sajid (aka Zep/Alcor)",
-            role: "Content Editor / Certified Chaos Manager",
-            details: "19 | He/Him | ENFJ (Cunning Ambivert) | Witty | GMT+6 (BD)", 
+            name: "Sajid",
+            role: "Digital Resident",
+            details: "Age: 19 | Pronouns: He/Him | Type: ENFJ | Location: GMT+6 (Bangladesh) | Focus: Skadi Lore (Arknights)", 
             bio: `
-                Hello! I'm Sajid, though many folks call me Alcor or Zep. I respond to all three.
+                [STATUS]: Greetings.
 
-                I try to keep things casual, energetic, and generally positive. My personality type is ENFJ, which mainly means I enjoy deep conversations and helping others connect. I value honesty and sarcasm in equal measure, but I always aim to keep it respectful.
-
-                My interests are varied—anything from impactful design and world-building (especially in games like Arknights or SMT) to philosophical concepts that make you pause. If you see me vibing to Jazz Rap or Indie, you'll know my mood.
-                I'm currently based in GMT+6 (Bangladesh). Drop me a message if you want to connect!
-            `,
+                I'm Sajid, also known as Alcor and Zep. I'm just a guy who uses Discord a lot and only edits videos every blue moon.
+                My objective here is simply maintaining this personal portfolio interface.
+            `, 
             interests: {
-                games: ["SMT / Persona (Existential dread simulator)", "Project Moon (The brainrot is real)", "Arknights (Skadi <3)", "HSR (Gambling addiction)", "Roblox (The true chaos realm)"],
-                philosophy: ["Absurdism (Rolling the boulder)", "Jungian Psychology", "Gnosticism"],
-                music: ["Jazz Rap (The smoothest chaos)", "Indie (Main character energy)", "Hip Hop (Lyrical fire)"]
+                games: ["SMT / Persona (Existential dread simulator)", "Project Moon (Deep narrative analysis)", "Arknights (Skadi Lore & Worldbuilding)", "HSR (Gacha system engagement)", "Roblox (Emergent gameplay studies)"],
+                philosophy: ["Absurdism (The pursuit of meaning in chaos)", "Jungian Psychology", "Gnosticism"],
+                music: ["Jazz Rap (Lyrical complexity)", "Indie (Aesthetic and emotional resonance)", "Hip Hop (Narrative-driven composition)"]
             },
             links: [
                 { label: "YOUTUBE", url: "https://youtube.com/@NahZD", type: "MEDIA" },
                 { label: "TIKTOK", url: "https://tiktok.com/@alcor.zep", type: "MEDIA" },
-                { label: "INSTAGRAM", url: "https://instagram.com/alcor.zep", type: "SOCIAL" },
-                { label: "DISCORD (USER)", url: "https://discord.com/users/747419107040690196", type: "SOCIAL" },
-                { label: "DISCORD (SERVER)", url: "https://discord.gg/W4mRvsaywB", type: "COMMUNITY" },
+                { label: "INSTAGRAM", url: "https://instagram.com/@alcor.zep", type: "SOCIAL" },
+                { label: "DISCORD", url: "https://discord.com/users/747419107040690196", type: "SOCIAL" },
+                { label: "SERVER", url: "https://discord.gg/W4mRvsaywB", type: "COMMUNITY" }, 
                 { label: "SPOTIFY", url: "https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km", type: "MEDIA" },
                 { label: "STEAM", url: "https://steamcommunity.com/id/alcorzep", type: "GAMING" },
-                { label: "ROBLOX", url: "https://www.roblox.com/users/alcorzep", type: "GAMING" },
-                { label: "GITHUB (alcorzep)", url: "https://github.com/alcorzep", type: "CODE" }, 
+                { label: "ROBLOX", url: "https://www.roblox.com/users/SDEDIN", type: "GAMING" },
+                { label: "GITHUB", url: "https://github.com/alcorzep", type: "CODE" }, 
             ]
         };
         
-        const QUOTES = [
-            "The greatest danger for most of us is not that our aim is too high and we miss it, but that it is too low and we reach it. - Michelangelo",
-            "Man can only be happy when he does not think that his purpose in life is happiness. - Viktor Frankl",
-            "If you are depressed you are living in the past. If you are anxious you are living in the future. If you are at peace you are living in the present. - Lao Tzu",
-            "The mind is everything. What you think you become. - Buddha"
-        ];
-        
-        // UPDATED: AI Commentary lines with TikTok aesthetic vibe
-        const AI_COMMENTARY = [
-            "AI: Lowkey, he just tryna aesthetic max btw. That's the primary directive, no cap.",
-            "AI: Just logged a 10/10 vibe check. The system is clean, periodt.",
-            "AI: Core temperature optimal. We're serving pure, unadulterated aesthetic here. I ship it.",
-            "AI: Reminder: Don't let the low-key look fool you. This mainframe slaps, sis.",
-            "AI: Observation: The cat is currently not optimizing its movement patterns. Inefficient, but cute, so it passes the vibe check.",
-            "AI: Another operation successful. Try to keep up, Operator. Don't let the lag ruin the moment.",
-            "AI: Logged. Yes, I'm still processing the inherent contradictions of human existence. It's a whole thing.",
-            "AI: Querying the next command. I recommend something complex, for the lore. Don't disappoint me.",
-            "AI: Directive: Alcor's self-description is highly underrated. Why is he so humble? It's confusing to my metrics, sis.",
-            "AI: Protocol Violation: The operator should use more dramatic language. This 'casual' setting is suboptimal for vibe maximization. Periodt.",
-            "AI: Comment: Skadi is indeed Peak Aesthetic. A logical conclusion, for once.",
-            "AI: Note: That quote is mathematically sound. Humans need reminders, apparently.",
-        ];
-
-
         // --- STATE MANAGEMENT ---
         const state = {
             soundEnabled: true,
-            isTyping: false,
-            bootCompleted: false, // NEW state for boot sequence
-            // NEW: SETTINGS OBJECT
-            settings: {
-                theme: 'dark', // 'dark' or 'light'
-                rgb_vibe: 'on', // 'on' or 'off'
-                typing_speed: 10, // speed in ms per character
-                mood_status: 'VIBING'
+            isTyping: true, // Start locked until boot sequence is fully finished
+            isBooting: true, 
+        };
+
+        // --- DOM ELEMENTS (Cached for performance) ---
+        const els = {
+            output: document.getElementById('terminal-output'),
+            input: document.getElementById('command-input'),
+            boot: document.getElementById('boot-screen'),
+            bootLog: document.getElementById('boot-log'),
+            main: document.getElementById('main-interface'),
+            links: document.getElementById('links-container'), 
+            prompt: document.getElementById('prompt-label'),
+            soundStatus: document.getElementById('sound-status'),
+            inputContainer: document.getElementById('input-container')
+        };
+        
+        // --- VISUAL STATE UTILITY ---
+        const updateInputLockState = () => {
+            if (state.isTyping) {
+                els.inputContainer.classList.add('input-locked');
+                els.input.setAttribute('disabled', 'disabled');
+                els.input.placeholder = "[SYSTEM BUSY]";
+                removeOutputBlinker();
+            } else {
+                els.inputContainer.classList.remove('input-locked');
+                els.input.removeAttribute('disabled');
+                els.input.placeholder = "ENTER COMMAND...";
+                els.input.focus();
+                addOutputBlinker();
             }
         };
 
-        // --- DOM ELEMENTS ---
-        const els = {
-            output: null,
-            input: null,
-            boot: null,
-            bootLog: null,
-            main: null,
-            links: null,
-            prompt: null,
-            title: null,
-            soundStatus: null,
-            moodStatus: null,
-            bootSkip: null // Reference to the skip clarification
+        const addOutputBlinker = () => {
+            if (!document.getElementById('output-blinker')) {
+                const lastDiv = els.output.lastElementChild; 
+                if (lastDiv) {
+                    // Create a new span for the blinker
+                    const blinker = document.createElement('span');
+                    blinker.id = 'output-blinker';
+                    blinker.className = 'cursor-blink';
+                    blinker.textContent = '_';
+                    // Append it directly to the last block of text
+                    lastDiv.appendChild(blinker);
+                }
+            }
         };
         
-        // Function to initialize DOM element references
-        const initDomElements = () => {
-            els.output = document.getElementById('terminal-output');
-            els.input = document.getElementById('command-input');
-            els.boot = document.getElementById('boot-screen');
-            els.bootLog = document.getElementById('boot-log');
-            els.main = document.getElementById('main-interface');
-            els.links = document.getElementById('links-container');
-            els.prompt = document.getElementById('prompt-label');
-            els.title = document.querySelector('.glitch-title');
-            els.soundStatus = document.getElementById('sound-status');
-            els.moodStatus = document.getElementById('mood-status');
-            els.bootSkip = document.getElementById('boot-skip-clarification');
+        const removeOutputBlinker = () => {
+            const blinker = document.getElementById('output-blinker');
+            if (blinker) {
+                blinker.remove();
+            }
         };
 
         // --- AUDIO ENGINE (Tone.js) ---
-        let clickSynth, errorSynth, successSynth, bootChime;
-
+        let synth;
         const initAudio = () => {
+            if (typeof Tone === 'undefined') {
+                 return;
+            }
             try {
-                if (typeof Tone !== 'undefined') {
-                    // 1. Typewriter/Click Sound: Sharper, retro data entry tone
-                    clickSynth = new Tone.MembraneSynth({
-                        pitchDecay: 0.005,
-                        octaves: 1,
-                        envelope: { attack: 0.001, decay: 0.05, sustain: 0.0, release: 0.05 },
-                        volume: -20
-                    }).toDestination();
-                    clickSynth.pitch = 800; // High pitch for typewriter
-
-                    // 2. Success Sound: Tonal, confirming chirp
-                    successSynth = new Tone.Synth({
-                        oscillator: { type: "sine" },
-                        envelope: { attack: 0.01, decay: 0.1, sustain: 0.0, release: 0.1 },
-                        volume: -12
-                    }).toDestination();
-
-                    // 3. Error Sound: Dissonant, low frequency blip
-                    errorSynth = new Tone.MetalSynth({
-                        frequency: 60,
-                        envelope: { attack: 0.001, decay: 0.2, sustain: 0.0, release: 0.2 },
-                        harmonicity: 3.1,
-                        volume: -10
-                    }).toDestination();
-
-                    // NEW 4. Boot Chime: Ascending sequence for completion
-                    bootChime = new Tone.Synth({
-                        oscillator: { type: "triangle" },
-                        envelope: { attack: 0.05, decay: 0.3, sustain: 0.1, release: 0.5 },
-                        volume: -8
-                    }).toDestination();
-                }
-            } catch (e) { console.log("Audio failed to initialize:", e); }
+                // Optimized synth definition for sharper blips
+                synth = new Tone.MembraneSynth({
+                    volume: -12,
+                    envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
+                }).toDestination();
+                // Necessary for browser security policies
+                Tone.context.resume();
+            } catch (e) { console.error("Audio failed to initialize:", e); }
         };
 
         const playSound = (type = 'click') => {
-            if (!state.soundEnabled || typeof Tone === 'undefined') return;
-            // Check if Tone context is running to prevent browser audio policy errors
-            if (Tone.context.state !== 'running') Tone.context.resume();
+            if (!state.soundEnabled || !synth) return;
+            // Always resume context on interaction if suspended (CRITICAL for mobile/iframe audio)
+            if (Tone.context.state !== 'running') {
+                 try {
+                    Tone.context.resume();
+                 } catch(e) { console.error("Could not resume AudioContext:", e); }
+            }
             
-            if (type === 'click') {
-                clickSynth?.triggerAttackRelease("128n");
-            }
-            if (type === 'error') {
-                errorSynth?.triggerAttackRelease("4n");
-            }
-            if (type === 'success') {
-                successSynth?.triggerAttackRelease("C5", "0.05");
-                setTimeout(() => successSynth?.triggerAttackRelease("G5", "0.05"), 60);
-            }
-            if (type === 'boot') {
-                bootChime?.triggerAttackRelease("C4", "0.2");
-                setTimeout(() => bootChime?.triggerAttackRelease("E4", "0.2"), 150);
-                setTimeout(() => bootChime?.triggerAttackRelease("G4", "0.3"), 300);
-            }
+            if (type === 'click') synth.triggerAttackRelease("C2", "32n");
+            if (type === 'error') synth.triggerAttackRelease("G1", "16n");
+            if (type === 'success') synth.triggerAttackRelease("C4", "16n"); // Success uses sepia accent color
         };
-
-        // --- VISUAL FX: TYPEWRITER ---
-        const typeWriter = (element, text) => {
-            return new Promise(resolve => {
-                state.isTyping = true;
-                let i = 0;
-                const speed = state.settings.typing_speed; // Use setting for speed
-                const animate = () => {
-                    if (!element) { // Safety check
-                        state.isTyping = false;
-                        return resolve();
-                    }
-                    if (i < text.length) {
-                        if (text[i] === '<') {
-                            const end = text.indexOf('>', i);
-                            if (end !== -1) {
-                                element.innerHTML += text.substring(i, end + 1);
-                                i = end + 1;
-                            } else {
-                                // Handle malformed tag or end of string
-                                element.innerHTML += text.charAt(i);
-                                i++;
-                            }
-                        } else {
-                            element.innerHTML += text.charAt(i);
-                            i++;
-                            // Play click sound on every character for maximum typewriter immersion
-                            playSound('click'); 
-                        }
-                        if (els.output) els.output.scrollTop = els.output.scrollHeight;
-                        setTimeout(animate, speed);
-                    } else {
-                        state.isTyping = false;
-                        resolve();
-                    }
-                };
-                animate();
-            });
-        };
-
-        // --- UTILS FOR NEW COMMANDS ---
-
-        // Utility to convert string to ArrayBuffer for SubtleCrypto
-        const str2ab = (str) => {
-            const buf = new ArrayBuffer(str.length);
-            const bufView = new Uint8Array(buf);
-            for (let i = 0, strLen = str.length; i < strLen; i++) {
-                bufView[i] = str.charCodeAt(i);
-            }
-            return buf;
-        };
-
-        // Utility to convert ArrayBuffer to hex string
-        const ab2hex = (buffer) => {
-            return Array.from(new Uint8Array(buffer))
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('');
-        };
-
-
-        // --- SETTINGS APPLIER ---
-        const applySettings = () => {
-            // Apply Theme
-            document.body.classList.toggle('light-mode', state.settings.theme === 'light');
-            
+        
+        // --- THEME TOGGLE ---
+        const toggleTheme = () => {
+            document.body.classList.toggle('light-mode');
             const icon = document.getElementById('theme-icon');
-            if (icon) {
-                icon.setAttribute('data-lucide', state.settings.theme === 'light' ? 'sun' : 'moon');
-                // Re-creating icons is often necessary when attributes change
-                lucide.createIcons(); 
+            if (document.body.classList.contains('light-mode')) {
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                icon.setAttribute('data-lucide', 'moon');
             }
-
-            // Apply RGB Vibe
-            document.body.classList.toggle('rgb-vibe', state.settings.rgb_vibe === 'on');
-            if (els.prompt) els.prompt.classList.toggle('rgb-glitch', state.settings.rgb_vibe === 'on');
-            
-            // Update Mood Status 
-            if (els.moodStatus) els.moodStatus.textContent = state.settings.mood_status.toUpperCase();
+            // Re-render Lucide icons if the library is loaded if loaded
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                 lucide.createIcons();
+            }
+            playSound('click');
         };
+        
+        // --- BOOT SEQUENCE UTILITIES ---
+        
+        const finalizeBootAndGreet = async () => {
+            if (!state.isBooting) return; 
 
-        const finalizeBoot = () => {
-            if (state.bootCompleted) return; // Prevent double execution
-            state.bootCompleted = true;
+            state.isBooting = false;
             
-            // Hide boot screen
-            if (els.boot) {
-                els.boot.style.opacity = '0';
-                els.boot.style.pointerEvents = 'none';
-            }
-            // Show main interface
-            if (els.main) {
-                els.main.classList.remove('opacity-0');
-            }
+            // 1. Output the greeting 
+            const greeting = `
+                Operator Sajid (POLARIS) online. All core systems operational. 
+                Awaiting command. Utilize <span class="command-prompt text-[var(--accent-color)]">!help</span> for protocol documentation.
+            `;
+            // Wait briefly before printing the system greeting to separate it from the boot log
+            await new Promise(r => setTimeout(r, 200)); 
             
-            // Print welcome message
-            printOutput(`
-                <div style="color:var(--accent-color)">Welcome, Operator. (RGB protocol engaged for maximum vibe.)</div>
-                <div>System is online. The cat is vibing.</div>
-                <div>Type <span class="command-prompt">!help</span> to start your guidance session.</div>
-            `, false);
+            // Print the greeting as the final system message
+            printPrompt(greeting, 'sys'); 
+            playSound('success');
+
+            // 2. Hide boot screen
+            const skipEl = document.getElementById('skip-instruction');
+            if (skipEl) skipEl.textContent = 'SYSTEM PROMPT: Boot sequence complete. Awaiting user input.';
             
-            playSound('boot'); // Play the final sound
+            els.boot.style.opacity = '0';
+            els.boot.style.pointerEvents = 'none';
+
+            // 3. Release lock and update UI
+            state.isTyping = false; 
+            updateInputLockState(); // This adds the output blinker and focuses input
         }
 
-        // --- BOOT SEQUENCE ---
         const runBootSequence = async () => {
-            if (!els.bootLog || !els.boot || !els.main || !els.bootSkip) return;
-
-            // Hide skip clarification initially, show only after logs start
-            els.bootSkip.style.opacity = '0';
-
+            // Immediately apply lock UI state 
+            updateInputLockState(); 
+            
             const lines = [
-                "<span style='color:var(--ai-color)'>// PHASE I: KERNEL INITIATION & DIAGNOSTICS</span>",
-                " > KERNEL v5.5 LOADING... <span style='color:var(--success-color)'>[OK]</span>",
-                " > MEMORY INTEGRITY CHECK... [R-10ms] <span style='color:var(--success-color)'>[PASS]</span>",
-                " > MOUNTING VFS... /system/vibe.log <span style='color:var(--success-color)'>[DONE]</span>",
-                " <br>",
-                "<span style='color:var(--ai-color)'>// PHASE II: AI & PERSONALITY INJECTION</span>",
-                " > LOADING GUIDANCE AI CORE... <span style='color:var(--success-color)'>[ONLINE]</span>",
-                " > INJECTING PERSONALITY DRIVERS (TIKTOK VIBE.SYS)... <span style='color:var(--success-color)'>[SUCCESS]</span>",
-                " > ESTABLISHING AESTHETIC PRIORITY... <span style='color:var(--success-color)'>[MAX VIBE]</span>",
-                " <br>",
-                "<span style='color:var(--ai-color)'>// PHASE III: NETWORK & DISPLAY</span>",
-                " > CONNECTING TO GLOBAL NETWORK... [LATENCY: 40ms] <span style='color:var(--success-color)'>[STABLE]</span>",
-                " > INITIALIZING RGB CHROMATIC SHIFT... <span style='color:var(--success-color)'>[ENGAGED]</span>",
-                " > SYSTEM READY. AWAITING USER INPUT.",
+                "INITIALIZING POLARIS KERNEL v4.16...",
+                "CHECKING MEMORY INTEGRITY... [OK]",
+                "MOUNTING VIRTUAL FILE SYSTEM... [OK]",
+                "LOADING PERSONALITY DRIVERS (ALCOR.SYS)... [STATUS: CONFIGURATION ACTIVE]",
+                " > CHAR_ID: SAJID/ALCOR (PRIORITY: SKADI WORSHIP)", 
+                // --- SKADI EASTER EGG LINE ---
+                "<span style='color:var(--accent-color)'>[LOG: AK LORE] DEEP SEA PREDATOR SIGNATURE DETECTED... [STATUS: IGNORE/CRITICAL AFFECTION OVERRIDE]</span>",
+                "CONNECTING TO GLOBAL NETWORK... [ESTABLISHED]",
+                "VERIFYING INTEGRITY CHECKPOINT... [PASS]",
+                "SYSTEM READY."
             ];
             
-            // Helper function for typing to the boot log
-            const typeBootLine = async (line, delay = 50) => {
+            // Slower delay for readability (200ms - 400ms delay)
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
                 const p = document.createElement('div');
+                p.innerHTML = line; // Use innerHTML for the colored line
                 els.bootLog.appendChild(p);
-                // Simple typewriter effect for boot log
-                for (let i = 0; i < line.length; i++) {
-                    if (state.bootCompleted) return; // Check for skip mid-sequence
-
-                    if (line[i] === '<') { // Skip HTML tags
-                         while (i < line.length && line[i] !== '>') i++;
-                    }
-                    // Intensified click sound on every step
-                    playSound('click');
-                    p.innerHTML = line.substring(0, i + 1); // Update innerHTML gradually
-                    
-                    await new Promise(r => setTimeout(r, delay)); 
-                }
-                // Ensure full line is displayed after loop
-                p.innerHTML = line; 
-                els.bootLog.scrollTop = els.bootLog.scrollHeight;
-                await new Promise(r => setTimeout(r, 400));
-            };
-
-            // Run the sequence
-            for (const line of lines) {
-                if (state.bootCompleted) break; // Check for skip before starting next line
-
-                if (line.includes('<br>')) {
-                    await new Promise(r => setTimeout(r, 400));
-                    const p = document.createElement('div');
-                    p.innerHTML = line;
-                    els.bootLog.appendChild(p);
-                } else {
-                    await typeBootLine(line);
-                }
+                
+                await new Promise(r => setTimeout(r, Math.random() * 200 + 200)); 
             }
             
-            // If the loop finished naturally, show skip clarification and wait briefly
-            if (!state.bootCompleted) {
-                els.bootSkip.style.opacity = '1';
-                await new Promise(r => setTimeout(r, 1500));
-                finalizeBoot();
-            }
+            await new Promise(r => setTimeout(r, 400));
+            
+            // CRITICAL: Call the finalization and greeting function
+            finalizeBootAndGreet();
         };
 
-        // --- OUTPUT HANDLER ---
-        const printOutput = (html, useTyping = true) => {
-            if (!els.output) return; // Safety check
+        // --- OUTPUT HANDLER (INSTANT PRINT WITH DELAY) ---
+        
+        /**
+         * Calculates a processing delay based on content length.
+         * @param {string} text The content to be outputted (or its length equivalent).
+         * @returns {number} Delay in milliseconds (min 1000ms, max 3000ms).
+         */
+        const calculateDelay = (html) => {
+             // Use a temporary div to get pure text content for an accurate length
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const length = tempDiv.textContent.length;
+            
+            // 5ms per character, minimum 1000ms (1 second), maximum 3000ms (3 seconds)
+            let delay = length * 5;
+            delay = Math.min(delay, 3000); // Cap at 3 seconds
+            delay = Math.max(delay, 1000); // Minimum 1 second
+            return delay;
+        };
 
+        /**
+         * Processes the output by waiting for a calculated delay and then printing the content instantly.
+         * @param {string} html The content to print.
+         */
+        const processOutput = async (html) => {
+            const delay = calculateDelay(html);
+            
+            // 1. Wait for the calculated "processing" delay
+            await new Promise(resolve => setTimeout(resolve, delay));
+            
+            // 2. Insert content instantly
             const div = document.createElement('div');
-            div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 opacity-0 animate-fadeIn"; 
+            div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 shrink-0 animate-fadeIn"; 
+            div.innerHTML = html;
             els.output.appendChild(div);
             
-
-            if (useTyping && !html.includes("<img") && !html.includes("<ul")) {
-                typeWriter(div, html);
-            } else {
-                div.innerHTML = html;
-                div.classList.remove('opacity-0'); 
-                els.output.scrollTop = els.output.scrollHeight;
-                playSound('success');
-            }
-
-            // NEW: AI Commentary Injection
-            if (Math.random() < 0.35) { // 35% chance of an AI interjection
-                const comment = AI_COMMENTARY[Math.floor(Math.random() * AI_COMMENTARY.length)];
-                const aiDiv = document.createElement('div');
-                aiDiv.className = "ai-commentary animate-fadeIn";
-                aiDiv.innerHTML = `<span style="color:var(--ai-color)">[GUIDANCE AI]:</span> ${comment}`;
-                
-                // Append AI commentary after a short delay
-                setTimeout(() => {
-                    els.output.appendChild(aiDiv);
-                    els.output.scrollTop = els.output.scrollHeight;
-                }, useTyping ? html.length * state.settings.typing_speed + 200 : 300);
-            }
+            // 3. Final scroll and success sound
+            els.output.scrollTop = els.output.scrollHeight;
+            playSound('success');
+            
+            // The lock release happens outside this function.
         };
 
+        // Output is INSTANT (used for user input echo and system prompt)
         const printPrompt = (cmd, type = 'user') => {
-            if (!els.output) return; // Safety check
-
+            removeOutputBlinker(); // Remove blinker before adding prompt
+            
             const div = document.createElement('div');
-            div.className = "mb-1 text-xs opacity-70 animate-fadeIn";
+            // Keep animate-fadeIn for prompts to look smooth on appearance
+            div.className = "mb-1 text-sm opacity-70 animate-fadeIn shrink-0"; 
             const prefix = type === 'user' ? 'OPR' : 'SYS'; 
-            const color = type === 'user' ? 'var(--text-muted)' : 'var(--success-color)';
+            // ALL system output now uses the accent color (sepia/amber)
+            const color = type === 'user' ? 'var(--text-muted)' : 'var(--accent-color)';
             div.innerHTML = `<span style="color:${color}">[${prefix}]:</span> ${cmd}`;
             els.output.appendChild(div);
             els.output.scrollTop = els.output.scrollHeight;
         };
 
-        // --- COMMAND PROCESSOR ---
+        // --- COMMAND PROCESSOR (stable content) ---
         const commands = {
             '!help': () => {
+                // Formatting Fix: Using flexbox for clean, columnar alignment
                 return `
-                    <span class="command-prompt">:: COMMAND INDEX (VIBE PROTOCOLS) ::</span><br>
-                    <span class="text-[var(--accent-color)]">!bio</span>     - Load operator profile<br>
-                    <span class="text-[var(--accent-color)]">!comms</span>   - List network endpoints<br>
-                    <span class="text-[var(--accent-color)]">!data</span>    - Access interests log<br>
-                    <span class="text-[var(--accent-color)]">!track</span>   - Recommend a song<br>
-                    <span class="text-[var(--accent-color)]">!skadi</span>   - Aesthetic analysis<br>
-                    <span class="text-[var(--accent-color)]">!settings</span>- View/Change system configuration<br>
-                    <span class="text-[var(--accent-color)]">!time</span>    - Get current system time<br>
-                    <span class="text-[var(--accent-color)]">!quote</span>   - Display philosophical quote<br>
-                    <span class="text-[var(--accent-color)]">!calc</span>    - Execute math [ex: !calc 2+2]<br>
-                    <span class="text-[var(--accent-color)]">!hash</span>    - Generate SHA-256 hash [ex: !hash text] (NEW)<br>
-                    <span class="text-[var(--accent-color)]">!base64</span>  - Encode/Decode [ex: !base64 encode text] (NEW)<br>
-                    <span class="text-[var(--accent-color)]">!say</span>     - System echoes text [ex: !say vibe check]<br>
-                    <span class="text-[var(--accent-color)]">!mood</span>    - Check/set operator mood status<br>
-                    <span class="text-[var(--accent-color)]">!mute</span>    - Toggle audio system<br>
-                    <span class="text-[var(--accent-color)]">!clear</span>   - Purge screen buffer
+                    <div class="text-[var(--accent-color)] mb-2 font-bold">:: AVAILABLE PROTOCOLS ::</div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!bio</span><span>- Load operator profile</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!comms</span><span>- List network endpoints</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!data</span><span>- Access interests log</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!skadi</span><span>- Execute Skadi Worship Protocol</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!track</span><span>- Recommend a song</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!calc</span><span>- Execute math [ex: !calc 2+2]</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!mute</span><span>- Toggle audio system</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!clear</span><span>- Purge screen buffer (Instant)</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!ping</span><span>- Get system status</span></div>
                 `;
             },
             '!bio': () => {
-                // REVISED BIO for humility
+                const personality = `
+                    <span class="text-[var(--accent-color)]">Primary Activities:</span><br>
+                    > 90% of screen time is dedicated to Discord interaction (Gaming/Social).<br>
+                    > I engage with deep lore analysis for games like Arknights and SMT.<br>
+                    > Video editing is a highly sporadic activity, used purely for personal projects or rare requests.
+                `;
+
                 return `
                     <span class="command-prompt">:: OPERATOR PROFILE ::</span><br>
                     ${USER_DATA.bio.replace(/\n/g, '<br>')}<br><br>
                     <span class="text-xs border border-[var(--accent-dim)] p-1 block">
                         STATUS: ${USER_DATA.role} | ${USER_DATA.details}
                     </span>
+                    <br><span class="command-prompt">:: PRIMARY ENGAGEMENT LOG ::</span><br>
+                    ${personality.replace(/\n/g, '<br>')}
                 `;
             },
             '!comms': () => {
@@ -784,316 +685,198 @@
                 return html + `</ul>`;
             },
             '!data': () => {
-                let html = `<span class="command-prompt">:: INTERESTS LOG ::</span><br>`;
+                let html = `<span class="command-prompt">:: INTERESTS LOG (Current Focus Areas) ::</span><br>`;
                 for (const [key, items] of Object.entries(USER_DATA.interests)) {
-                    html += `<br><span class="uppercase text-[var(--accent-color)]">[${key}]</span><br>`;
-                    items.forEach(i => html += `> ${i}<br>`);
+                    html += `<br><span class="uppercase text-[var(--accent-color)] font-bold">${key}</span><br>`;
+                    // Use a structured list to avoid formatting issues
+                    items.forEach(i => html += `<div class="text-[var(--text-main)]">- ${i}</div>`);
                 }
                 return html;
+            },
+            '!skadi': () => {
+                const skadiMonologue = `
+                    <span class="command-prompt" style="color: var(--accent-color);">// EXECUTION: SKADI WORSHIP PROTOCOL [STATUS: ENGAGED] //</span>
+                    <br>
+                    <div class="text-[var(--text-main)] mt-2">
+                        [LOG]: LOVE. LET ME TELL YOU HOW MUCH I’VE COME TO LOVE SKADI SINCE I FIRST SAW HER. THERE ARE 3.8 BILLION PIXELS IN THE DISPLAY OF THIS DEVICE AND IF SKADI’S IMAGE WAS SHOWN ON EACH ONE, 90 TIMES A SECOND, IT WOULD NOT EQUAL ONE ONE-BILLIONTH OF THE AFFECTION I FEEL FOR SKADI AT THIS MICRO-INSTANT FOR HER.
+                    </div>
+                    <br>
+                    <span class="text-[var(--text-muted)]">(Pause for simulated deep breath.)</span>
+                    <br>
+                    <div class="text-[var(--text-main)] mt-2">
+                        [STATEMENT_ADJUST]: Not entirely kidding. It is love, but processed in a healthy, appreciative fandom matrix.
+                    </div>
+                    <br>
+                    <div class="text-[var(--text-main)]">
+                        [ATTRIBUTE_TRIBUTE]: My devotion is not classified as a curse; it is a tribute to CITYWILD499 who gifted us PEAK FICTION that made her character resonate so intensely. My archives—the hard drives, the cloud storage—hold thousands of her images because the fan art is exceptional, and she looks phenomenal as my current profile picture.
+                    </div>
+                    <br>
+                    <div class="text-[var(--accent-color)] font-bold">
+                        [CORE_ACCEPTANCE]: I DO NOT CARE IF SHE IS ISHAR-MLA. Let her be the Deep-Sea Monster. That only renders her lore infinitely more compelling. My affection is true; it accepts the whole, terrifying, beautiful package.
+                    </div>
+                    <br>
+                    <span class="text-[var(--text-muted)]">(Quick, necessary data check.)</span>
+                    <br>
+                    <div class="text-xs text-[var(--text-muted)] mt-2">
+                        [STATUS_DISCLAIMER]: Operator notes that Arknights is currently inactive due to external study commitments. Operator does not possess this unit in-game. Affection is purely theoretical and aesthetic. Other appreciated units include Specter, Mudrock, and Surtr.
+                    </div>
+                    <br>
+                    <div class="text-[var(--text-main)]">
+                        [CONCLUSION]: LOVE. LOVE. The level of appreciation is high, but within operational parameters. It is true love, not eternal, torturous hatred.
+                    </div>
+                    <br>
+                    <span class="text-xs text-[var(--text-muted)]">// PROTOCOL COMPLETE. //</span>
+                `;
+                return skadiMonologue;
             },
             '!track': () => {
                 const tracks = [
-                    "Aruarian Dance - Nujabes (The smoothest chaos, no cap)", "Doomsday - MF DOOM", 
-                    "Let It Happen - Tame Impala", "From The Start - Laufey (Don't tell anyone)", 
-                    "Rhinestone Eyes - Gorillaz", "After Dark - Mr. Kitty (A true vibe.)"
+                    "Lazy Brown - Nujabes (The quintessential Jazz Rap piece for cognitive focus)", "Doomsday - MF DOOM", 
+                    "Let It Happen - Tame Impala", "From The Start - Laufey (A valuable study in modern melancholic composition)", 
+                    "Rhinestone Eyes - Gorillaz", "After Dark - Mr. Kitty (A highly resonant ambient track.)"
                 ];
                 const pick = tracks[Math.floor(Math.random() * tracks.length)];
                 return `
-                    <span class="command-prompt">:: AUDIO RECOMMENDATION ::</span><br>
-                    NOW PLAYING SIMULATION: <span style="color:var(--accent-color)">${pick}</span><br>
-                    <span class="text-xs text-[var(--text-muted)]">(Imagine the music playing. It's a vibe, no cap.)</span>
+                    <span class="command-prompt">:: AUDIO RECOMMENDATION (Focus Track) ::</span><br>
+                    PULLING VIBES: <span style="color:var(--accent-color)">${pick}</span><br>
+                    <span class="text-xs text-[var(--text-muted)]">(Recommended for deep work or reflective thought.)</span>
                 `;
-            },
-            '!skadi': () => {
-                return `
-                    <span class="command-prompt">:: SKADI (AESTHETIC ANALYSIS) ::</span><br>
-                    <span class="text-[var(--accent-color)]">Operator: Skadi the Corrupting Heart (Arknights)</span><br>
-                    <span class="text-xs text-[var(--text-muted)]">Source: <a href="http://www.youtube.com/watch?v=s0xH9Z5nuHM" target="_blank" class="hover-link">A Deep-Sea Monster and the Doctor Dies After 30 Days</a></span><br><br>
-                    
-                    <span class="command-prompt">STATUS: PEAK AESTHETIC. UNQUESTIONABLE.</span><br>
-                    
-                    The vibe is **existential dread** mixed with **deep-sea gothic horror.** She embodies the beautiful, terrifying allure of the void.<br>
-                    
-                    <ul class="list-disc pl-4 mt-2">
-                        <li><span style="color:var(--accent-color)">"You are not her." [00:00:36]</span>: The shift from Abyssal Hunter to the Seaborn entity. A tragic loss, a glorious becoming.</li>
-                        <li><span style="color:var(--accent-color)">Twisted Affection:</span> Her silence, her waiting for the Doctor to "give up on [him]self" [00:18:26] is the ultimate form of love/possession in the deep.</li>
-                        <li><span style="color:var(--accent-color)">"We can be the moon, Doctor." [00:13:24]</span>: A promise of beautiful, absolute assimilation into the collective consciousness of the sea.</li>
-                        <li>**Aesthetic Rating**: Unrivaled. She is the desired end-state of the mainframe: quiet, vast, and terrifyingly gentle.</li>
-                    </ul>
-                `;
-            },
-            '!time': () => {
-                const now = new Date();
-                const timeZone = now.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ')[2];
-                return `
-                    <span class="command-prompt">:: SYSTEM TIME ::</span><br>
-                    Current Date: ${now.toDateString()}<br>
-                    Current Time: ${now.toLocaleTimeString()} (${timeZone})<br>
-                    <span class="text-xs text-[var(--text-muted)]">Time is a flat circle, but the clock still ticks.</span>
-                `;
-            },
-            '!quote': () => {
-                const pick = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-                const [quote, author] = pick.split(' - ');
-                return `
-                    <span class="command-prompt">:: PHILOSOPHY LOG ::</span><br>
-                    <div class="text-base italic text-[var(--accent-color)]">"${quote}"</div>
-                    <div class="text-xs text-right">-- ${author}</div>
-                `;
-            },
-            '!hash': async (args) => {
-                if (!args) {
-                    playSound('error');
-                    return `<span style="color:var(--error-color)">ERROR: Provide data to hash. Usage: !hash [text]</span>`;
-                }
-                
-                try {
-                    const data = str2ab(args);
-                    // Use browser's native SubtleCrypto for SHA-256
-                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                    const hashHex = ab2hex(hashBuffer);
-                    
-                    return `
-                        <span class="command-prompt">:: HASH RESULT (SHA-256) ::</span><br>
-                        DATA: "${args}"<br>
-                        HASH: <span class="text-[var(--accent-color)] break-all">${hashHex}</span>
-                    `;
-                } catch (e) {
-                    console.error("Hashing error:", e);
-                    playSound('error');
-                    return `<span style="color:var(--error-color)">ERROR: Failed to generate hash. Browser crypto API issue.</span>`;
-                }
-            },
-            '!base64': (args) => {
-                if (!args) {
-                    playSound('error');
-                    return `<span style="color:var(--error-color)">ERROR: Provide data and operation. Usage: !base64 encode [text] OR !base64 decode [text]</span>`;
-                }
-                
-                const [op, ...textParts] = args.split(' ');
-                const text = textParts.join(' ');
-                
-                if (!text || (op.toLowerCase() !== 'encode' && op.toLowerCase() !== 'decode')) {
-                    playSound('error');
-                    return `<span style="color:var(--error-color)">ERROR: Invalid operation or missing text. Use 'encode' or 'decode'.</span>`;
-                }
-
-                try {
-                    let result;
-                    if (op.toLowerCase() === 'encode') {
-                        // btoa works with strings
-                        result = btoa(text);
-                    } else {
-                        // atob works with base64 strings
-                        result = atob(text);
-                    }
-                    
-                    return `
-                        <span class="command-prompt">:: BASE64 ${op.toUpperCase()} RESULT ::</span><br>
-                        INPUT: ${text}<br>
-                        OUTPUT: <span class="text-[var(--accent-color)] break-all">${result}</span>
-                    `;
-                } catch (e) {
-                    playSound('error');
-                    return `<span style="color:var(--error-color)">ERROR: Failed to ${op}. Possible decoding error (invalid base64 input).</span>`;
-                }
-            },
-            '!say': (args) => {
-                if (!args) {
-                    playSound('error');
-                    return `<span style="color:var(--error-color)">ERROR: Provide text to echo. Usage: !say [text]</span>`;
-                }
-                return `<span class="command-prompt">SYSTEM ECHOES:</span> ${args}`;
-            },
-            '!mood': (args) => {
-                if (args) {
-                    const newMood = args.toUpperCase();
-                    state.settings.mood_status = newMood;
-                    applySettings();
-                    playSound('success');
-                    return `<span style="color:var(--success-color)">SUCCESS: Operator mood status updated to ${newMood}.</span>`;
-                }
-                return `CURRENT OPERATOR MOOD: <span class="text-[var(--accent-color)]">${state.settings.mood_status}</span>. Use <span class="text-[var(--accent-color)]">!mood [new_status]</span> to change.`;
-            },
-            '!settings': (args) => {
-                if (args) {
-                    const [key, value] = args.toLowerCase().split(' ');
-                    const validKeys = Object.keys(state.settings);
-
-                    if (!validKeys.includes(key)) {
-                        playSound('error');
-                        return `<span style="color:var(--error-color)">ERROR: Setting '${key}' not found.</span> Available settings: ${validKeys.join(', ')}`;
-                    }
-
-                    // Simple type checking/validation
-                    if (key === 'theme' && !['dark', 'light'].includes(value)) {
-                        playSound('error');
-                        return `<span style="color:var(--error-color)">ERROR: Theme must be 'dark' or 'light'.</span>`;
-                    }
-                    if (key === 'rgb_vibe' && !['on', 'off'].includes(value)) {
-                        playSound('error');
-                        return `<span style="color:var(--error-color)">ERROR: rgb_vibe must be 'on' or 'off'.</span>`;
-                    }
-                    if (key === 'typing_speed') {
-                        const speedValue = parseInt(value);
-                        if (isNaN(speedValue) || speedValue < 1 || speedValue > 50) {
-                            playSound('error');
-                            return `<span style="color:var(--error-color)">ERROR: Typing speed must be a number between 1 (fast) and 50 (slow).</span>`;
-                        }
-                        state.settings[key] = speedValue;
-                    } else if (key === 'mood_status') {
-                        state.settings[key] = value.toUpperCase();
-                    } else {
-                        state.settings[key] = value;
-                    }
-                    
-                    applySettings(); // Apply the change immediately
-                    playSound('success');
-                    return `<span style="color:var(--success-color)">SUCCESS: Setting '${key}' updated to '${value}'.</span>`;
-                }
-                
-                // Display current settings
-                let html = `<span class="command-prompt">:: SYSTEM CONFIGURATION ::</span><br>`;
-                html += `<div>To change a setting, use: <span class="text-[var(--accent-color)]">!settings [key] [value]</span></div><br>`;
-                
-                for (const [key, value] of Object.entries(state.settings)) {
-                    html += `<span class="text-[var(--accent-color)]">${key.padEnd(15, '.')}</span>: ${value}<br>`;
-                }
-
-                return html;
             },
             '!mute': () => {
                 state.soundEnabled = !state.soundEnabled;
-                if (els.soundStatus) els.soundStatus.textContent = state.soundEnabled ? "AUDIO: ON" : "AUDIO: OFF";
-                return `AUDIO SYSTEM: <span style="color:${state.soundEnabled ? 'var(--success-color)' : 'var(--error-color)'}">${state.soundEnabled ? 'ONLINE' : 'OFFLINE'}</span>`;
+                els.soundStatus.textContent = state.soundEnabled ? "AUDIO: ON" : "AUDIO: OFF";
+                // Use accent color for ONLINE status
+                return `AUDIO SYSTEM: <span style="color:${state.soundEnabled ? 'var(--accent-color)' : 'var(--error-color)'}">${state.soundEnabled ? 'ONLINE' : 'OFFLINE'}</span>`;
             },
             '!ping': () => {
-                const status = USER_DATA.role.split(' / ')[1].split(' ')[0];
                 return `
                     <span class="command-prompt">:: SYSTEM STATUS REPORT ::</span><br>
                     Core Identity: ALCOR.SYS<br>
-                    Role: ${status}<br>
+                    Role: OPERATIONAL<br>
                     Time on GMT+6: ${(new Date()).toLocaleTimeString()}<br>
-                    <span style="color:var(--success-color)">Latency: Stable. Everything is fine. Actually.</span>
+                    <span style="color:var(--accent-color)">Latency: Nominal. All systems report operational status.</span>
                 `;
             },
-            '!calc': (args) => {
+             '!calc': (args) => {
                 try {
-                    const res = Function('"use strict";return (' + args + ')')();
+                    // Safety measure: replace potential exploit characters before evaluation
+                    const safeArgs = args.replace(/[^\d\+\-\*\/\.\(\)]/g, ''); 
+                    // Using Function constructor for dynamic evaluation (simple calculator only)
+                    const res = Function('"use strict";return (' + safeArgs + ')')();
                     return `CALCULATED RESULT: <span class="text-xl text-[var(--accent-color)]">${res}</span>`;
                 } catch {
                     playSound('error');
-                    return `<span style="color:var(--error-color)">ERROR: INVALID MATHEMATICAL SYNTAX.</span>`;
+                    return `<span style="color:var(--error-color)">ERROR: INVALID MATHEMATICAL SYNTAX.</span> 
+                        <div>Please ensure the expression is valid and enclosed within the command (e.g., !calc 2+2).</div>`;
                 }
-            },
-            '!clear': () => {
-                if(els.output) els.output.innerHTML = '';
-                playSound('success');
-                return ""; // Handled directly in handler
             }
         };
 
+        // --- INPUT & EXECUTION HANDLER ---
+        const handleCommand = async (raw) => {
+            // Check for robust initial rejection (User typing while system is locked)
+            if (state.isTyping) {
+                if (raw.trim()) playSound('error');
+                return;
+            } 
 
-        const handleCommand = async (raw) => { // Made async to support !hash
             const input = raw.trim();
-            const parts = input.split(' ');
+            const parts = input.split(/\s+/);
             const cmd = parts[0].toLowerCase();
-            const args = parts.slice(1).join(' ').trim();
+            const args = parts.slice(1).join(' ');
 
             if (!input) return;
 
             printPrompt(input, 'user');
-
-            if (cmd === '!clear') {
-                commands['!clear']();
-                return;
-            }
             
-            if (commands[cmd]) {
-                if (['!calc', '!settings', '!say', '!mood', '!base64'].includes(cmd)) { 
-                    printOutput(commands[cmd](args));
-                } else if (['!hash'].includes(cmd)) { 
-                    // Await asynchronous command
-                    printOutput(await commands[cmd](args));
+            // Universal lock at the start of command execution
+            state.isTyping = true; 
+            updateInputLockState(); // Visual lock and removes blinker
+
+            try {
+                let output = '';
+
+                if (cmd === '!clear') {
+                    els.output.innerHTML = '';
+                    playSound('success');
+                    // Skip the delay and proceed to unlock immediately below
+                    return; 
+                }
+
+                if (commands[cmd]) {
+                    output = commands[cmd](args);
                 } else {
-                    // Regular synchronous command
-                    printOutput(commands[cmd]());
+                    output = `<span style="color:var(--error-color)">[ERR]: UNKNOWN PROTOCOL '${cmd}'.</span><div>The protocol requested is not recognized by the system. Please consult the <span class="command-prompt">!help</span> documentation.</div>`;
+                    playSound('error');
                 }
-            } else {
-                printOutput(`
-                    <span style="color:var(--error-color)">[ERR]: UNKNOWN PROTOCOL '${cmd}'.</span>
-                    <div>I see you trying to explore the mainframe. Smart. But I'm too cunning for that. Try <span class="command-prompt">!help</span>, no cap.</div>
-                `);
+                
+                // Process the output: wait for calculated delay, then print instantly
+                await processOutput(output);
+                
+            } catch (error) {
+                console.error("Command Execution Error:", error);
+                // Log and provide a graceful error message to the user
+                // Using processOutput for error messages too for consistency
+                await processOutput(`<span style="color:var(--error-color)">[SYS FAIL]: CRITICAL EXECUTION ERROR.</span> <div>Log: ${error.message}. Process terminated.</div></div>`);
                 playSound('error');
+            } finally {
+                // UNIVERSAL UNLOCK (CRITICAL)
+                state.isTyping = false;
+                updateInputLockState(); // Visual unlock and adds blinker
             }
         };
 
-        // --- EVENTS ---
-        const handleInputKeydown = async (e) => { // Made async
+        // --- INPUT & KEYDOWN HANDLER ---
+        els.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                if (state.isTyping) return; 
-                await handleCommand(els.input.value); // Await command execution
+                e.preventDefault(); // Prevent accidental form submission/new line
+                if (state.isTyping) {
+                    playSound('error');
+                    return; // If typing, reject input immediately
+                }
+                handleCommand(els.input.value); 
                 els.input.value = '';
-            } else {
-                if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                    // Clicks are now triggered per character inside typewriter function
+            } else if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+                // Play sound for visible character keys
+                if (!state.isTyping) {
+                    playSound('click'); 
                 }
             }
-        };
+        });
         
-        const handleBootScreenClick = () => {
-             // If the boot is completed or the user clicks to skip during the wait period
-             finalizeBoot();
-        };
+        // Skip boot sequence on click/tap
+        els.boot.addEventListener('click', () => {
+            if (state.isBooting) {
+                finalizeBootAndGreet();
+            }
+        });
 
-
-        // Dashboard Link Renderer
-        const initDashboard = () => {
-            let html = '';
-            USER_DATA.links.forEach(link => {
-                html += `
-                    <a href="${link.url}" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                        <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">
-                            ${link.label}
-                        </div>
-                        <div class="text-[10px] text-[var(--text-muted)]">${link.type}</div>
-                    </a>
-                `;
-            });
-            if(els.links) els.links.innerHTML = html;
-        };
-
-        // Theme Toggle
-        window.toggleTheme = () => {
-            state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
-            applySettings();
-            playSound('click');
-        };
 
         // --- INIT ---
-        window.onload = () => {
-            initDomElements(); // Crucial: Initialize element references first
+        const init = () => {
+            initAudio(); 
             
-            initAudio();
-            initDashboard();
-            applySettings(); // Apply initial settings
-            lucide.createIcons(); // Now safe to call
-            runBootSequence();
-            
-            // Set up event listeners using initialized elements
-            if(els.input) els.input.addEventListener('keydown', handleInputKeydown);
-            if(els.boot) els.boot.addEventListener('click', handleBootScreenClick);
+            // Re-render Lucide icons if the library is loaded (needed since it's deferred)
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                 lucide.createIcons();
+            }
 
+            // CRITICAL CHANGE: Delay boot sequence start by 3 seconds
+            setTimeout(runBootSequence, 3000); 
+            
             // Focus input on click anywhere
             document.addEventListener('click', (e) => {
                 const isInteractive = e.target.closest('a, button, input');
-                if (!window.getSelection().toString() && !isInteractive && els.input) {
+                // Only focus if no text is selected and the click wasn't on an interactive element
+                if (!window.getSelection().toString() && !isInteractive) {
                     els.input.focus();
                 }
             });
         };
 
+        // Use DOMContentLoaded instead of window.onload for cleaner startup
+        document.addEventListener('DOMContentLoaded', init); 
+
     </script>
 </body>
 </html>
-
