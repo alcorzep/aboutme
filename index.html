@@ -15,14 +15,9 @@
     9. GREETER FIX: Ensured the greeter logic runs only once and reduced its size/length.
     10. THEME/PROMPT FIX: Restored the missing 'toggleTheme' function and verified command input listener functionality.
     11. SHADER FIX: Changed pseudo-elements for vignette and scanlines to `position: fixed` to ensure full viewport coverage during scrolling.
-    12. **INPUT LOCK FIX (CRITICAL):** Refactored `handleCommand` to be async and await the typing process, guaranteeing that the `state.isTyping` lock is released after every command execution, preventing permanent input failure.
-    13. **AESTHETIC FIX:** Removed the SVG noise filter from the body background to achieve a clean, plain color as requested.
-    
-    PERFORMANCE OPTIMIZATION LOG (Existing):
-    1. Added 'defer' to all external <script> tags.
-    2. Added 'preconnect' for Google Fonts and CDNs.
-    3. Changed JS initialization from window.onload to DOMContentLoaded for faster startup.
-    4. Moved dynamic CSS for fadeIn animation into the static <style> block.
+    12. INPUT LOCK FIX (CRITICAL): Refactored `handleCommand` to be async and await the typing process, guaranteeing that the `state.isTyping` lock is released after every command execution, preventing permanent input failure.
+    13. AESTHETIC FIX: Removed the SVG noise filter from the body background to achieve a clean, plain color as requested.
+    14. **!BIO FIX:** Updated the operator profile (`USER_DATA.bio` and `!bio` command output) to reflect a more casual persona, focusing on Discord use and infrequent editing, per user request.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -89,7 +84,6 @@
             color: var(--text-main);
             font-family: 'IBM Plex Mono', monospace;
             /* AESTHETIC FIX: Removed SVG Noise Filter */
-            /* background-image: url("data:image/svg+xml,..."); */
             
             /* FIX: Changed height to min-height for full page scrolling */
             min-height: 100vh;
@@ -338,7 +332,7 @@
                         <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">TIKTOK</div>
                         <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
                     </a>
-                    <a href="https://instagram.com/alcor.zep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
+                    <a href="https://instagram.com/@alcor.zep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
                         <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">INSTAGRAM</div>
                         <div class="text-[10px] text-[var(--text-muted)]">SOCIAL</div>
                     </a>
@@ -392,14 +386,14 @@
         // --- CONSTANTS & DATA ---
         const USER_DATA = {
             name: "Sajid",
-            role: "System Operator",
+            role: "Digital Resident", // Updated role to be more casual
             details: "Age: 19 | Pronouns: He/Him | Type: ENFJ | Location: GMT+6 (Bangladesh) | Focus: Skadi Lore (Arknights)", 
             bio: `
-                [LOG_ENTRY_01]: Greetings.
+                [STATUS]: Greetings.
 
-                I am the system operator, Sajid. I utilize the monikers Alcor and Zep.
-                My primary objective is the functional maintenance of this digital interface.
-            `,
+                I'm Sajid, also known as Alcor and Zep. I'm just a guy who uses Discord a lot and only edits videos every blue moon.
+                My objective here is simply maintaining this personal portfolio interface.
+            `, // Updated bio
             interests: {
                 games: ["SMT / Persona (Existential dread simulator)", "Project Moon (Deep narrative analysis)", "Arknights (Skadi Lore & Worldbuilding)", "HSR (Gacha system engagement)", "Roblox (Emergent gameplay studies)"],
                 philosophy: ["Absurdism (The pursuit of meaning in chaos)", "Jungian Psychology", "Gnosticism"],
@@ -408,7 +402,7 @@
             links: [
                 { label: "YOUTUBE", url: "https://youtube.com/@NahZD", type: "MEDIA" },
                 { label: "TIKTOK", url: "https://tiktok.com/@alcor.zep", type: "MEDIA" },
-                { label: "INSTAGRAM", url: "https://instagram.com/alcor.zep", type: "SOCIAL" },
+                { label: "INSTAGRAM", url: "https://instagram.com/@alcor.zep", type: "SOCIAL" },
                 { label: "DISCORD (USER)", url: "https://discord.com/users/747419107040690196", type: "SOCIAL" },
                 { label: "DISCORD (SERVER)", url: "https://discord.com/users/747419107040690196", type: "COMMUNITY" }, 
                 { label: "SPOTIFY", url: "https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km", type: "MEDIA" },
@@ -612,10 +606,10 @@
             },
             '!bio': () => {
                 const personality = `
-                    <span class="text-[var(--accent-color)]">Personal Philosophy:</span><br>
-                    > My engagement often revolves around deep-dive lore, worldbuilding, and character analysis.<br>
-                    > I seek philosophical resonance in digital and physical experiences.<br>
-                    > The focus remains on functional execution, even when discussing subjective passions like Skadi.
+                    <span class="text-[var(--accent-color)]">Primary Activities:</span><br>
+                    > 90% of screen time is dedicated to Discord interaction (Gaming/Social).<br>
+                    > I engage with deep lore analysis for games like Arknights and SMT.<br>
+                    > Video editing is a highly sporadic activity, used purely for personal projects or rare requests.
                 `;
 
                 return `
@@ -624,7 +618,7 @@
                     <span class="text-xs border border-[var(--accent-dim)] p-1 block">
                         STATUS: ${USER_DATA.role} | ${USER_DATA.details}
                     </span>
-                    <br><span class="command-prompt">:: OPERATOR PERSONALITY LOG ::</span><br>
+                    <br><span class="command-prompt">:: PRIMARY ENGAGEMENT LOG ::</span><br>
                     ${personality.replace(/\n/g, '<br>')}
                 `;
             },
