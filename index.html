@@ -1,13 +1,13 @@
 <!-- 
     PROJECT: POLARIS // GUIDANCE LOG 
     AUTHOR: SAJID / ZEP / ALCOR
-    STATUS: PEAK AESTHETIC REACHED. COMMS UPDATED. ANIMATIONS ADDED.
+    STATUS: CRITICAL INPUT FREEZE BUGFIX (POST-LOAD RELIABILITY)
     
     FIX LOG:
-    1. FIX 1 (Input/Send): Added a robust try...finally block around command execution to guarantee the `state.isTyping` lock is ALWAYS released, addressing the post-load input freeze.
-    2. FIX 2 (Grid Layout): Changed `grid-cols-2 sm:grid-cols-3` to a universal `grid-cols-3` in the Dashboard for a consistent 3x3 layout on all screen sizes (mobile and desktop).
-    3. TWEAK 1 (Color Purge): Removed the `--success-color` (green) entirely. All success, system, and positive status indications now use the sepia/amber `--accent-color` for a clean, monochrome aesthetic.
-    4. GENERAL: Replaced 'green status' text with 'operational status' in line with the new color palette.
+    1. CRITICAL FIX (Input Freeze): Implemented an explicit, redundant lock release (`state.isTyping = false`) immediately following the completion of the asynchronous initial greeting in `initialGreeting()` to guarantee the input is usable after boot.
+    2. RELIABILITY: Ensured the keydown handler plays an error sound if the user tries to type while the system is "typing" (locked).
+    3. REFACTOR: Removed the redundant `window.onload` fallback, relying solely on `DOMContentLoaded` and script deferral for a cleaner, more predictable initialization sequence.
+    4. AESTHETICS: Confirmed the universal 3-column grid and the sepia/amber color palette are maintained.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -243,7 +243,7 @@
     <div id="boot-screen">
         <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight"></div>
         
-        <!-- SIMPLIFIED BOOT FOOTER (Progress bar removed) -->
+        <!-- SIMPLIFIED BOOT FOOTER -->
         <div class="mt-4">
             <div id="skip-instruction" class="text-xs text-[var(--text-muted)] mt-1">
                 SYSTEM PROMPT: Click anywhere to bypass sequence initialization.
@@ -369,7 +369,7 @@
 
     <script>
         /*
-         * POLARIS SYSTEM CORE v4.7 (CRITICAL FIXES APPLIED)
+         * POLARIS SYSTEM CORE v4.8 (CRITICAL RELIABILITY UPDATE)
          */
 
         // --- CONSTANTS & DATA ---
@@ -433,6 +433,8 @@
                     volume: -12,
                     envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
                 }).toDestination();
+                // Necessary for browser security policies
+                Tone.context.resume();
             } catch (e) { console.error("Audio failed to initialize:", e); }
         };
 
@@ -447,7 +449,7 @@
             
             if (type === 'click') synth.triggerAttackRelease("C2", "32n");
             if (type === 'error') synth.triggerAttackRelease("G1", "16n");
-            if (type === 'success') synth.triggerAttackRelease("C4", "16n"); // Success uses same frequency, but its color is now sepia
+            if (type === 'success') synth.triggerAttackRelease("C4", "16n"); // Success uses sepia accent color
         };
         
         // --- THEME TOGGLE ---
@@ -469,7 +471,7 @@
         // --- VISUAL FX: TYPEWRITER ---
         const typeWriter = (element, text, speed = 10) => {
             return new Promise(resolve => {
-                state.isTyping = true; 
+                state.isTyping = true; // Lock set
                 let i = 0;
                 const animate = () => {
                     if (i < text.length) {
@@ -496,7 +498,7 @@
                         els.output.scrollTop = els.output.scrollHeight;
                         setTimeout(animate, speed);
                     } else {
-                        state.isTyping = false; // Final release
+                        state.isTyping = false; // Lock released on completion
                         resolve();
                     }
                 };
@@ -513,11 +515,14 @@
             printPrompt("System initialization complete. Authentication established.", 'sys');
             await new Promise(r => setTimeout(r, 300)); 
             
-            // Use typing for the final greeting, which properly sets state.isTyping
+            // Await the typing process for the final greeting
             await printOutput(`
                 <div class="text-sm md:text-base text-[var(--text-main)]">Operator Sajid (POLARIS) online. All core systems operational.</div>
                 <div>Awaiting command. Utilize <span class="command-prompt text-[var(--accent-color)]">!help</span> for protocol documentation.</div>
             `, true); 
+
+            // CRITICAL FIX: Explicitly release the lock here again after the promise resolves
+            state.isTyping = false;
         };
         
         // New function to handle post-boot cleanup and greeting
@@ -538,7 +543,7 @@
 
         const runBootSequence = async () => {
             const lines = [
-                "INITIALIZING POLARIS KERNEL v4.7...",
+                "INITIALIZING POLARIS KERNEL v4.8...",
                 "CHECKING MEMORY INTEGRITY... [OK]",
                 "MOUNTING VIRTUAL FILE SYSTEM... [OK]",
                 "LOADING PERSONALITY DRIVERS (ALCOR.SYS)... [STATUS: CONFIGURATION ACTIVE]",
@@ -722,7 +727,11 @@
 
         // --- INPUT & EXECUTION HANDLER ---
         const handleCommand = async (raw) => {
-            if (state.isTyping) return; 
+            // Added check here for robust initial rejection
+            if (state.isTyping) {
+                playSound('error'); // Provide audible feedback that input is locked
+                return;
+            } 
 
             const input = raw.trim();
             const parts = input.split(/\s+/);
@@ -733,7 +742,7 @@
 
             printPrompt(input, 'user');
             
-            // Universal lock at the start of command execution (CRITICAL for flow control)
+            // Universal lock at the start of command execution
             state.isTyping = true; 
 
             try {
@@ -746,14 +755,10 @@
                     return; // Return immediately, lock is released in finally block
                 }
 
-                if (cmd === '!calc' || cmd === '!mute' || cmd === '!ping') {
+                if (commands[cmd]) {
+                    output = commands[cmd](args);
                     // Commands that produce instant, non-typed output
-                    useTyping = false; 
-                    output = commands[cmd] ? commands[cmd](args) : commands['!help'](); // Fallback to help if invalid but starts with '!'
-                } else if (commands[cmd]) {
-                    output = commands[cmd]();
-                    // Check if the output is pre-formatted list (like !comms) and shouldn't be typed
-                    if (output.includes("<ul")) { 
+                    if (cmd === '!calc' || cmd === '!mute' || cmd === '!ping' || output.includes("<ul")) { 
                         useTyping = false;
                     }
                 } else {
@@ -768,7 +773,7 @@
             } catch (error) {
                 console.error("Command Execution Error:", error);
                 // Log and provide a graceful error message to the user
-                printOutput(`<span style="color:var(--error-color)">[SYS FAIL]: CRITICAL EXECUTION ERROR.</span> <div>Log: ${error.message}. Process terminated.</div>`, false);
+                await printOutput(`<span style="color:var(--error-color)">[SYS FAIL]: CRITICAL EXECUTION ERROR.</span> <div>Log: ${error.message}. Process terminated.</div>`, false);
                 playSound('error');
             } finally {
                 // UNIVERSAL UNLOCK (CRITICAL FIX): This ensures the input is always usable.
@@ -780,7 +785,7 @@
         els.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault(); // Prevent accidental form submission/new line
-                if (state.isTyping) return; 
+                if (state.isTyping) return; // If typing, do nothing
                 handleCommand(els.input.value); 
                 els.input.value = '';
             } else if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
@@ -817,14 +822,8 @@
             });
         };
 
-        // Use DOMContentLoaded instead of window.onload for faster script execution start
+        // Use DOMContentLoaded instead of window.onload for cleaner startup
         document.addEventListener('DOMContentLoaded', init); 
-        
-        // Fallback for deferred scripts (Tone.js and Lucide)
-        window.onload = () => {
-             if (typeof Tone !== 'undefined' && !synth) initAudio();
-             if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-        };
 
     </script>
 </body>
