@@ -1,13 +1,13 @@
 <!-- 
     PROJECT: POLARIS // GUIDANCE LOG 
     AUTHOR: SAJID / ZEP / ALCOR
-    STATUS: CRITICAL INPUT FREEZE BUGFIX (POST-LOAD RELIABILITY)
+    STATUS: PROCESSING DELAY & FORMATTING FIX
     
-    FIX LOG:
-    1. CRITICAL FIX (Input Freeze): Implemented an explicit, redundant lock release (`state.isTyping = false`) immediately following the completion of the asynchronous initial greeting in `initialGreeting()` to guarantee the input is usable after boot.
-    2. RELIABILITY: Ensured the keydown handler plays an error sound if the user tries to type while the system is "typing" (locked).
-    3. REFACTOR: Removed the redundant `window.onload` fallback, relying solely on `DOMContentLoaded` and script deferral for a cleaner, more predictable initialization sequence.
-    4. AESTHETICS: Confirmed the universal 3-column grid and the sepia/amber color palette are maintained.
+    UPDATE LOG:
+    1. DELAY LOGIC: Removed character-by-character typing. Implemented a calculated processing delay (1-3 seconds) based on content length using `calculateDelay()`.
+    2. UX: The system input is now locked for the duration of the calculated delay, simulating authentic "SYSTEM BUSY" time.
+    3. FORMATTING FIX: Updated the output for multi-line commands (e.g., !help, !data) to use flexbox for fixed-width alignment, ensuring clean, columnar display instead of collapsing spaces.
+    4. DELAYED BOOT: Initial 3-second delay before boot sequence starts is maintained.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -16,28 +16,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POLARIS // SYSTEM ROOT</title>
     
-    <!-- PERFORMANCE OPTIMIZATION: Preconnect to CDNs for faster handshake -->
+    <!-- CRITICAL PERFORMANCE OPTIMIZATION: Use Preconnect for faster handshake -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.dev">
     
-    <!-- Load Tailwind -->
+    <!-- Load Tailwind and defer script execution for faster parsing -->
     <script src="https://cdn.tailwindcss.com" defer></script>
     
-    <!-- Fonts: IBM Plex Mono is non-negotiable for the retro feel -->
+    <!-- Fonts: Preload and use IBM Plex Mono for the retro feel -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Icons: Lucide -->
+    <!-- Icons: Lucide (Deferred) -->
     <script src="https://unpkg.com/lucide@latest" defer></script>
     
-    <!-- Audio: Tone.js for the UI blips -->
+    <!-- Audio: Tone.js for the UI blips (Deferred) -->
     <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer></script>
     
-    <!-- Pet: Oneko.js (The cat is mandatory.) -->
-    <script src="https://cdn.jsdelivr.dev/gh/adryd325/oneko.js@main/oneko.js" defer></script> 
-
     <style>
         /* --- 1. THEME ENGINE (SEPIA VOID) --- */
         :root {
@@ -48,7 +45,6 @@
             --accent-color: #dcbfa6;   /* The "Sepia" Glow */
             --accent-dim: #5c4e43;     /* Dimmed accent for borders */
             --error-color: #ff6b6b;    /* Retro Error Red */
-            /* Success color removed - now uses accent-color */
             
             --scanline-opacity: 0.15;
             --phosphor-glow: 0 0 8px rgba(220, 191, 166, 0.4);
@@ -73,7 +69,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'IBM Plex Mono', monospace;
-            min-height: 100vh;
+            min-height: 10vh;
             display: flex;
             flex-direction: column;
             transition: color 0.3s, background-color 0.3s;
@@ -115,10 +111,12 @@
             animation: flicker 0.15s infinite alternate; 
         }
 
-        /* The Glow (Phosphor Persistence) & Pulse */
+        /* --- REVERTED GLOW (SUBTLE PHOSPHOR EFFECT) --- */
         .glow-text {
+            /* Subtle text-shadow instead of chromatic aberration */
             text-shadow: var(--phosphor-glow);
-            animation: pulse 4s infinite ease-in-out alternate; 
+            filter: none; /* Remove blur filter */
+            animation: none; /* Remove subtle flicker animation */
         }
 
         /* Distressed Title Effect */
@@ -152,6 +150,22 @@
             border-color: var(--accent-color);
             transition: box-shadow 0.3s, border-color 0.3s;
         }
+        
+        /* --- INPUT LOCK STYLING --- */
+        .input-locked .command-prompt {
+             color: var(--error-color) !important; /* Change prompt color to error red */
+             opacity: 0.5; /* Dim the prompt */
+             animation: none; /* Stop the pulse/glow */
+             text-shadow: none; /* Remove shadows when locked */
+        }
+        
+        .input-locked input {
+            cursor: wait; /* Change cursor to indicate busy status */
+        }
+        .input-locked input::placeholder {
+            color: var(--error-color) !important; /* Change placeholder to error color */
+        }
+        
 
         /* Boot Screen Overlay */
         #boot-screen {
@@ -169,12 +183,13 @@
             transition: opacity 0.5s;
         }
         
+        /* Blinking cursor for boot and output */
         .cursor-blink {
             animation: blink 1s step-end infinite;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         
-        /* New line fade-in animation */
+        /* New line fade-in animation (for instant text/prompts) */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
@@ -191,12 +206,6 @@
             10% { opacity: var(--scanline-opacity); }
             25% { opacity: calc(var(--scanline-opacity) - 0.05); }
             100% { opacity: var(--scanline-opacity); }
-        }
-
-        @keyframes pulse {
-            0% { text-shadow: 0 0 8px rgba(220, 191, 166, 0.4); }
-            50% { text-shadow: 0 0 12px rgba(220, 191, 166, 0.6), 0 0 5px rgba(220, 191, 166, 0.2); }
-            100% { text-shadow: 0 0 8px rgba(220, 191, 166, 0.4); }
         }
 
         @keyframes glitch-anim {
@@ -261,6 +270,7 @@
         <!-- HEADER -->
         <header class="mb-4 p-4 rounded-sm terminal-box flex justify-between items-start shrink-0">
             <div>
+                <!-- Title now uses the subtle phosphor glow -->
                 <h1 class="glitch-title text-3xl md:text-4xl lg:text-5xl leading-none text-[var(--text-main)] glow-text glitch-anim">
                     POLARIS
                 </h1>
@@ -284,13 +294,16 @@
         </header>
 
         <!-- OUTPUT TERMINAL (Where the chat happens) -->
-        <div id="terminal-output" class="flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-base leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)] min-h-[10rem]">
+        <!-- SUBTLE GLOW APPLIED HERE -->
+        <div id="terminal-output" class="h-96 md:h-[60vh] flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-base leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)] glow-text">
             <!-- Content injected via JS -->
         </div>
 
         <!-- INPUT AREA -->
         <section class="mb-4 shrink-0">
-            <div class="flex items-center terminal-box p-3 rounded-sm border-l-4 border-l-[var(--accent-color)] input-focus">
+            <!-- Added id "input-container" to target lock visuals -->
+            <div id="input-container" class="flex items-center terminal-box p-3 rounded-sm border-l-4 border-l-[var(--accent-color)] input-focus">
+                <!-- Command prompt also uses the subtle phosphor glow -->
                 <label for="command-input" id="prompt-label" class="text-lg whitespace-nowrap pr-3 command-prompt glow-text">
                     POLARIS >
                 </label>
@@ -369,10 +382,11 @@
 
     <script>
         /*
-         * POLARIS SYSTEM CORE v4.8 (CRITICAL RELIABILITY UPDATE)
+         * POLARIS SYSTEM CORE v4.16 (PROCESSING DELAY & FORMATTING)
          */
 
         // --- CONSTANTS & DATA ---
+        // Removed TYPING_DELAY as we are now using processing delay based on content length
         const USER_DATA = {
             name: "Sajid",
             role: "Digital Resident",
@@ -404,9 +418,8 @@
         // --- STATE MANAGEMENT ---
         const state = {
             soundEnabled: true,
-            isTyping: false,
+            isTyping: true, // Start locked until boot sequence is fully finished
             isBooting: true, 
-            greetingDisplayed: false,
         };
 
         // --- DOM ELEMENTS (Cached for performance) ---
@@ -418,7 +431,46 @@
             main: document.getElementById('main-interface'),
             links: document.getElementById('links-container'), 
             prompt: document.getElementById('prompt-label'),
-            soundStatus: document.getElementById('sound-status')
+            soundStatus: document.getElementById('sound-status'),
+            inputContainer: document.getElementById('input-container')
+        };
+        
+        // --- VISUAL STATE UTILITY ---
+        const updateInputLockState = () => {
+            if (state.isTyping) {
+                els.inputContainer.classList.add('input-locked');
+                els.input.setAttribute('disabled', 'disabled');
+                els.input.placeholder = "[SYSTEM BUSY]";
+                removeOutputBlinker();
+            } else {
+                els.inputContainer.classList.remove('input-locked');
+                els.input.removeAttribute('disabled');
+                els.input.placeholder = "ENTER COMMAND...";
+                els.input.focus();
+                addOutputBlinker();
+            }
+        };
+
+        const addOutputBlinker = () => {
+            if (!document.getElementById('output-blinker')) {
+                const lastDiv = els.output.lastElementChild; 
+                if (lastDiv) {
+                    // Create a new span for the blinker
+                    const blinker = document.createElement('span');
+                    blinker.id = 'output-blinker';
+                    blinker.className = 'cursor-blink';
+                    blinker.textContent = '_';
+                    // Append it directly to the last block of text
+                    lastDiv.appendChild(blinker);
+                }
+            }
+        };
+        
+        const removeOutputBlinker = () => {
+            const blinker = document.getElementById('output-blinker');
+            if (blinker) {
+                blinker.remove();
+            }
         };
 
         // --- AUDIO ENGINE (Tone.js) ---
@@ -461,134 +513,127 @@
             } else {
                 icon.setAttribute('data-lucide', 'moon');
             }
-            // Re-render Lucide icons if the library is loaded 
+            // Re-render Lucide icons if the library is loaded if loaded
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
                  lucide.createIcons();
             }
             playSound('click');
         };
-
-        // --- VISUAL FX: TYPEWRITER ---
-        const typeWriter = (element, text, speed = 10) => {
-            return new Promise(resolve => {
-                state.isTyping = true; // Lock set
-                let i = 0;
-                const animate = () => {
-                    if (i < text.length) {
-                        // Check for HTML tags to inject them instantly without typing
-                        if (text[i] === '<') {
-                            const end = text.indexOf('>', i);
-                            if (end !== -1) {
-                                element.innerHTML += text.substring(i, end + 1);
-                                i = end + 1;
-                            } else {
-                                // Fallback for unmatched '<' (treat as normal char)
-                                element.innerHTML += text.charAt(i);
-                                i++;
-                            }
-                        } else {
-                            element.innerHTML += text.charAt(i);
-                            i++;
-                            // Only play sound on every third character for performance and feel
-                            if (i % 3 === 0) { 
-                                playSound('click'); 
-                            }
-                        }
-                        // Ensure constant scroll to bottom during typing
-                        els.output.scrollTop = els.output.scrollHeight;
-                        setTimeout(animate, speed);
-                    } else {
-                        state.isTyping = false; // Lock released on completion
-                        resolve();
-                    }
-                };
-                animate();
-            });
-        };
         
         // --- BOOT SEQUENCE UTILITIES ---
         
-        const initialGreeting = async () => {
-            if (state.greetingDisplayed) return; 
-            state.greetingDisplayed = true;
-
-            printPrompt("System initialization complete. Authentication established.", 'sys');
-            await new Promise(r => setTimeout(r, 300)); 
-            
-            // Await the typing process for the final greeting
-            await printOutput(`
-                <div class="text-sm md:text-base text-[var(--text-main)]">Operator Sajid (POLARIS) online. All core systems operational.</div>
-                <div>Awaiting command. Utilize <span class="command-prompt text-[var(--accent-color)]">!help</span> for protocol documentation.</div>
-            `, true); 
-
-            // CRITICAL FIX: Explicitly release the lock here again after the promise resolves
-            state.isTyping = false;
-        };
-        
-        // New function to handle post-boot cleanup and greeting
-        const finalizeBootAndGreet = () => {
+        const finalizeBootAndGreet = async () => {
             if (!state.isBooting) return; 
 
             state.isBooting = false;
-            // The skip instruction is handled here
+            
+            // 1. Output the greeting 
+            const greeting = `
+                Operator Sajid (POLARIS) online. All core systems operational. 
+                Awaiting command. Utilize <span class="command-prompt text-[var(--accent-color)]">!help</span> for protocol documentation.
+            `;
+            // Wait briefly before printing the system greeting to separate it from the boot log
+            await new Promise(r => setTimeout(r, 200)); 
+            
+            // Print the greeting as the final system message
+            printPrompt(greeting, 'sys'); 
+            playSound('success');
+
+            // 2. Hide boot screen
             const skipEl = document.getElementById('skip-instruction');
             if (skipEl) skipEl.textContent = 'SYSTEM PROMPT: Boot sequence complete. Awaiting user input.';
-
-            // Transition: Fade out boot screen
+            
             els.boot.style.opacity = '0';
             els.boot.style.pointerEvents = 'none';
-            
-            initialGreeting();
+
+            // 3. Release lock and update UI
+            state.isTyping = false; 
+            updateInputLockState(); // This adds the output blinker and focuses input
         }
 
         const runBootSequence = async () => {
+            // Immediately apply lock UI state 
+            updateInputLockState(); 
+            
             const lines = [
-                "INITIALIZING POLARIS KERNEL v4.8...",
+                "INITIALIZING POLARIS KERNEL v4.16...",
                 "CHECKING MEMORY INTEGRITY... [OK]",
                 "MOUNTING VIRTUAL FILE SYSTEM... [OK]",
                 "LOADING PERSONALITY DRIVERS (ALCOR.SYS)... [STATUS: CONFIGURATION ACTIVE]",
                 " > CHAR_ID: SAJID/ALCOR (PRIORITY: SKADI WORSHIP)", 
+                // --- SKADI EASTER EGG LINE ---
+                "<span style='color:var(--accent-color)'>[LOG: AK LORE] DEEP SEA PREDATOR SIGNATURE DETECTED... [STATUS: IGNORE/CRITICAL AFFECTION OVERRIDE]</span>",
                 "CONNECTING TO GLOBAL NETWORK... [ESTABLISHED]",
                 "VERIFYING INTEGRITY CHECKPOINT... [PASS]",
                 "SYSTEM READY."
             ];
-
+            
+            // Slower delay for readability (200ms - 400ms delay)
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 const p = document.createElement('div');
-                p.textContent = line;
+                p.innerHTML = line; // Use innerHTML for the colored line
                 els.bootLog.appendChild(p);
                 
-                await new Promise(r => setTimeout(r, Math.random() * 50 + 100)); 
+                await new Promise(r => setTimeout(r, Math.random() * 200 + 200)); 
             }
             
             await new Promise(r => setTimeout(r, 400));
             
+            // CRITICAL: Call the finalization and greeting function
             finalizeBootAndGreet();
         };
 
-        // --- OUTPUT HANDLER ---
-        const printOutput = async (html, useTyping = true) => {
-            const div = document.createElement('div');
-            // Use flex-shrink-0 to prevent content from being compressed by Tailwind's default flex behavior
-            div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 animate-fadeIn shrink-0"; 
-            els.output.appendChild(div);
+        // --- OUTPUT HANDLER (INSTANT PRINT WITH DELAY) ---
+        
+        /**
+         * Calculates a processing delay based on content length.
+         * @param {string} text The content to be outputted (or its length equivalent).
+         * @returns {number} Delay in milliseconds (min 1000ms, max 3000ms).
+         */
+        const calculateDelay = (html) => {
+             // Use a temporary div to get pure text content for an accurate length
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const length = tempDiv.textContent.length;
             
-            if (useTyping && !html.includes("<ul")) {
-                div.classList.remove('animate-fadeIn'); 
-                div.style.opacity = 1; 
-                await typeWriter(div, html); // Await the typing process
-            } else {
-                div.innerHTML = html;
-                // If not typing, play success sound and scroll immediately
-                els.output.scrollTop = els.output.scrollHeight;
-                playSound('success');
-            }
+            // 5ms per character, minimum 1000ms (1 second), maximum 3000ms (3 seconds)
+            let delay = length * 5;
+            delay = Math.min(delay, 3000); // Cap at 3 seconds
+            delay = Math.max(delay, 1000); // Minimum 1 second
+            return delay;
         };
 
-        const printPrompt = (cmd, type = 'user') => {
+        /**
+         * Processes the output by waiting for a calculated delay and then printing the content instantly.
+         * @param {string} html The content to print.
+         */
+        const processOutput = async (html) => {
+            const delay = calculateDelay(html);
+            
+            // 1. Wait for the calculated "processing" delay
+            await new Promise(resolve => setTimeout(resolve, delay));
+            
+            // 2. Insert content instantly
             const div = document.createElement('div');
-            div.className = "mb-1 text-sm opacity-70 animate-fadeIn shrink-0";
+            div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 shrink-0 animate-fadeIn"; 
+            div.innerHTML = html;
+            els.output.appendChild(div);
+            
+            // 3. Final scroll and success sound
+            els.output.scrollTop = els.output.scrollHeight;
+            playSound('success');
+            
+            // The lock release happens outside this function.
+        };
+
+        // Output is INSTANT (used for user input echo and system prompt)
+        const printPrompt = (cmd, type = 'user') => {
+            removeOutputBlinker(); // Remove blinker before adding prompt
+            
+            const div = document.createElement('div');
+            // Keep animate-fadeIn for prompts to look smooth on appearance
+            div.className = "mb-1 text-sm opacity-70 animate-fadeIn shrink-0"; 
             const prefix = type === 'user' ? 'OPR' : 'SYS'; 
             // ALL system output now uses the accent color (sepia/amber)
             const color = type === 'user' ? 'var(--text-muted)' : 'var(--accent-color)';
@@ -597,20 +642,21 @@
             els.output.scrollTop = els.output.scrollHeight;
         };
 
-        // --- COMMAND PROCESSOR ---
+        // --- COMMAND PROCESSOR (stable content) ---
         const commands = {
             '!help': () => {
+                // Formatting Fix: Using flexbox for clean, columnar alignment
                 return `
-                    <span class="command-prompt">:: AVAILABLE PROTOCOLS ::</span><br>
-                    <span class="text-[var(--accent-color)]">!bio</span>     - Load operator profile (Current profile summary)<br>
-                    <span class="text-[var(--accent-color)]">!comms</span>   - List network endpoints (External resources/links)<br>
-                    <span class="text-[var(--accent-color)]">!data</span>    - Access interests log (Current philosophical/creative interests)<br>
-                    <span class="text-[var(--accent-color)]">!skadi</span>   - Execute Skadi Worship Protocol (Mandatory Skadi focus protocol)<br>
-                    <span class="text-[var(--accent-color)]">!track</span>   - Recommend a song (Music recommendation)<br>
-                    <span class="text-[var(--accent-color)]">!calc</span>    - Execute math [ex: !calc 2+2]<br>
-                    <span class="text-[var(--accent-color)]">!mute</span>    - Toggle audio system (For environments requiring silence)<br>
-                    <span class="text-[var(--accent-color)]">!clear</span>   - Purge screen buffer (Reset display)<br>
-                    <span class="text-[var(--accent-color)]">!ping</span>    - Get system status (Retrieve system status)
+                    <div class="text-[var(--accent-color)] mb-2 font-bold">:: AVAILABLE PROTOCOLS ::</div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!bio</span><span>- Load operator profile</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!comms</span><span>- List network endpoints</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!data</span><span>- Access interests log</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!skadi</span><span>- Execute Skadi Worship Protocol</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!track</span><span>- Recommend a song</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!calc</span><span>- Execute math [ex: !calc 2+2]</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!mute</span><span>- Toggle audio system</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!clear</span><span>- Purge screen buffer (Instant)</span></div>
+                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!ping</span><span>- Get system status</span></div>
                 `;
             },
             '!bio': () => {
@@ -641,8 +687,9 @@
             '!data': () => {
                 let html = `<span class="command-prompt">:: INTERESTS LOG (Current Focus Areas) ::</span><br>`;
                 for (const [key, items] of Object.entries(USER_DATA.interests)) {
-                    html += `<br><span class="uppercase text-[var(--accent-color)]">[${key}]</span><br>`;
-                    items.forEach(i => html += `> ${i}<br>`);
+                    html += `<br><span class="uppercase text-[var(--accent-color)] font-bold">${key}</span><br>`;
+                    // Use a structured list to avoid formatting issues
+                    items.forEach(i => html += `<div class="text-[var(--text-main)]">- ${i}</div>`);
                 }
                 return html;
             },
@@ -727,9 +774,9 @@
 
         // --- INPUT & EXECUTION HANDLER ---
         const handleCommand = async (raw) => {
-            // Added check here for robust initial rejection
+            // Check for robust initial rejection (User typing while system is locked)
             if (state.isTyping) {
-                playSound('error'); // Provide audible feedback that input is locked
+                if (raw.trim()) playSound('error');
                 return;
             } 
 
@@ -744,53 +791,56 @@
             
             // Universal lock at the start of command execution
             state.isTyping = true; 
+            updateInputLockState(); // Visual lock and removes blinker
 
             try {
                 let output = '';
-                let useTyping = true;
 
                 if (cmd === '!clear') {
                     els.output.innerHTML = '';
                     playSound('success');
-                    return; // Return immediately, lock is released in finally block
+                    // Skip the delay and proceed to unlock immediately below
+                    return; 
                 }
 
                 if (commands[cmd]) {
                     output = commands[cmd](args);
-                    // Commands that produce instant, non-typed output
-                    if (cmd === '!calc' || cmd === '!mute' || cmd === '!ping' || output.includes("<ul")) { 
-                        useTyping = false;
-                    }
                 } else {
                     output = `<span style="color:var(--error-color)">[ERR]: UNKNOWN PROTOCOL '${cmd}'.</span><div>The protocol requested is not recognized by the system. Please consult the <span class="command-prompt">!help</span> documentation.</div>`;
                     playSound('error');
-                    useTyping = false; 
                 }
                 
-                // Await the output printing (which includes typing if 'useTyping' is true)
-                await printOutput(output, useTyping);
+                // Process the output: wait for calculated delay, then print instantly
+                await processOutput(output);
                 
             } catch (error) {
                 console.error("Command Execution Error:", error);
                 // Log and provide a graceful error message to the user
-                await printOutput(`<span style="color:var(--error-color)">[SYS FAIL]: CRITICAL EXECUTION ERROR.</span> <div>Log: ${error.message}. Process terminated.</div>`, false);
+                // Using processOutput for error messages too for consistency
+                await processOutput(`<span style="color:var(--error-color)">[SYS FAIL]: CRITICAL EXECUTION ERROR.</span> <div>Log: ${error.message}. Process terminated.</div></div>`);
                 playSound('error');
             } finally {
-                // UNIVERSAL UNLOCK (CRITICAL FIX): This ensures the input is always usable.
+                // UNIVERSAL UNLOCK (CRITICAL)
                 state.isTyping = false;
+                updateInputLockState(); // Visual unlock and adds blinker
             }
         };
 
-        // --- EVENTS ---
+        // --- INPUT & KEYDOWN HANDLER ---
         els.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault(); // Prevent accidental form submission/new line
-                if (state.isTyping) return; // If typing, do nothing
+                if (state.isTyping) {
+                    playSound('error');
+                    return; // If typing, reject input immediately
+                }
                 handleCommand(els.input.value); 
                 els.input.value = '';
             } else if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
                 // Play sound for visible character keys
-                playSound('click'); 
+                if (!state.isTyping) {
+                    playSound('click'); 
+                }
             }
         });
         
@@ -806,11 +856,13 @@
         const init = () => {
             initAudio(); 
             
+            // Re-render Lucide icons if the library is loaded (needed since it's deferred)
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
                  lucide.createIcons();
             }
 
-            runBootSequence(); 
+            // CRITICAL CHANGE: Delay boot sequence start by 3 seconds
+            setTimeout(runBootSequence, 3000); 
             
             // Focus input on click anywhere
             document.addEventListener('click', (e) => {
