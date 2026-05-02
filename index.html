@@ -1,14 +1,3 @@
-<!-- 
-    PROJECT: POLARIS // GUIDANCE LOG 
-    AUTHOR: SAJID / ZEP / ALCOR
-    STATUS: PROCESSING DELAY & FORMATTING FIX
-    
-    UPDATE LOG:
-    1. DELAY LOGIC: Removed character-by-character typing. Implemented a calculated processing delay (1-3 seconds) based on content length using `calculateDelay()`.
-    2. UX: The system input is now locked for the duration of the calculated delay, simulating authentic "SYSTEM BUSY" time.
-    3. FORMATTING FIX: Updated the output for multi-line commands (e.g., !help, !data) to use flexbox for fixed-width alignment, ensuring clean, columnar display instead of collapsing spaces.
-    4. DELAYED BOOT: Initial 3-second delay before boot sequence starts is maintained.
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,36 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POLARIS // SYSTEM ROOT</title>
     
-    <!-- CRITICAL PERFORMANCE OPTIMIZATION: Use Preconnect for faster handshake -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://unpkg.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.dev">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     
-    <!-- Load Tailwind and defer script execution for faster parsing -->
     <script src="https://cdn.tailwindcss.com" defer></script>
     
-    <!-- Fonts: Preload and use IBM Plex Mono for the retro feel -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Icons: Lucide (Deferred) -->
     <script src="https://unpkg.com/lucide@latest" defer></script>
-    
-    <!-- Audio: Tone.js for the UI blips (Deferred) -->
     <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer></script>
     
     <style>
-        /* --- 1. THEME ENGINE (SEPIA VOID) --- */
         :root {
-            --bg-color: #1a1614;       /* Deepest Void Brown */
-            --glass-bg: #26201c;       /* Slightly lighter for panels */
-            --text-main: #e6dfd5;      /* Off-white paper color */
-            --text-muted: #9c9288;     /* Dust grey */
-            --accent-color: #dcbfa6;   /* The "Sepia" Glow */
-            --accent-dim: #5c4e43;     /* Dimmed accent for borders */
-            --error-color: #ff6b6b;    /* Retro Error Red */
-            
+            --bg-color: #1a1614;
+            --glass-bg: #26201c;
+            --text-main: #e6dfd5;
+            --text-muted: #9c9288;
+            --accent-color: #dcbfa6;
+            --accent-dim: #5c4e43;
+            --error-color: #ff6b6b;
             --scanline-opacity: 0.15;
             --phosphor-glow: 0 0 8px rgba(220, 191, 166, 0.4);
         }
@@ -61,10 +42,7 @@
             --phosphor-glow: none;
         }
 
-        /* --- 2. CORE LAYOUT & TYPOGRAPHY --- */
-        html {
-            height: 100%; /* Ensure html fills the viewport */
-        }
+        html { height: 100%; }
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
@@ -75,18 +53,11 @@
             transition: color 0.3s, background-color 0.3s;
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { 
-            background: var(--accent-dim); 
-            border-radius: 2px;
-        }
+        ::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
 
-        /* --- 3. RETRO VISUAL EFFECTS & ANIMATIONS (FIXED POSITIONING) --- */
-        
-        /* The Vignette (Dark corners) - FIXED POSITIONING */
         body::before {
             content: "";
             position: fixed; 
@@ -96,7 +67,6 @@
             z-index: 90;
         }
 
-        /* The Scanlines & CRT Flicker - FIXED POSITIONING */
         .scanlines::after {
             content: " ";
             display: block;
@@ -111,63 +81,16 @@
             animation: flicker 0.15s infinite alternate; 
         }
 
-        /* --- REVERTED GLOW (SUBTLE PHOSPHOR EFFECT) --- */
-        .glow-text {
-            /* Subtle text-shadow instead of chromatic aberration */
-            text-shadow: var(--phosphor-glow);
-            filter: none; /* Remove blur filter */
-            animation: none; /* Remove subtle flicker animation */
-        }
+        .glow-text { text-shadow: var(--phosphor-glow); filter: none; animation: none; }
+        .glitch-title { font-family: 'Inter', sans-serif; font-weight: 900; letter-spacing: -2px; filter: url(#distort-text); text-transform: uppercase; }
+        .glitch-anim { animation: glitch-anim 2s linear infinite alternate; }
+        .hover-link { border-bottom: 1px dashed var(--accent-dim); transition: all 0.2s; }
+        .hover-link:hover { background-color: var(--accent-color); color: var(--bg-color); border-bottom-style: solid; }
+        .input-focus:focus-within { box-shadow: 0 0 10px rgba(220, 191, 166, 0.6); border-color: var(--accent-color); transition: box-shadow 0.3s, border-color 0.3s; }
+        .input-locked .command-prompt { color: var(--error-color) !important; opacity: 0.5; animation: none; text-shadow: none; }
+        .input-locked input { cursor: wait; }
+        .input-locked input::placeholder { color: var(--error-color) !important; }
 
-        /* Distressed Title Effect */
-        .glitch-title {
-            font-family: 'Inter', sans-serif; /* Contrast font */
-            font-weight: 900;
-            letter-spacing: -2px;
-            filter: url(#distort-text);
-            text-transform: uppercase;
-        }
-
-        /* Active Glitch Animation for Title */
-        .glitch-anim {
-            animation: glitch-anim 2s linear infinite alternate;
-        }
-
-        /* Links */
-        .hover-link {
-            border-bottom: 1px dashed var(--accent-dim);
-            transition: all 0.2s;
-        }
-        .hover-link:hover {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            border-bottom-style: solid;
-        }
-        
-        /* Input Focus Border Animation */
-        .input-focus:focus-within {
-            box-shadow: 0 0 10px rgba(220, 191, 166, 0.6);
-            border-color: var(--accent-color);
-            transition: box-shadow 0.3s, border-color 0.3s;
-        }
-        
-        /* --- INPUT LOCK STYLING --- */
-        .input-locked .command-prompt {
-             color: var(--error-color) !important; /* Change prompt color to error red */
-             opacity: 0.5; /* Dim the prompt */
-             animation: none; /* Stop the pulse/glow */
-             text-shadow: none; /* Remove shadows when locked */
-        }
-        
-        .input-locked input {
-            cursor: wait; /* Change cursor to indicate busy status */
-        }
-        .input-locked input::placeholder {
-            color: var(--error-color) !important; /* Change placeholder to error color */
-        }
-        
-
-        /* Boot Screen Overlay */
         #boot-screen {
             position: fixed;
             inset: 0;
@@ -183,23 +106,11 @@
             transition: opacity 0.5s;
         }
         
-        /* Blinking cursor for boot and output */
-        .cursor-blink {
-            animation: blink 1s step-end infinite;
-        }
+        .cursor-blink { animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        
-        /* New line fade-in animation (for instant text/prompts) */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
 
-        /* KEYFRAMES */
-        
         @keyframes flicker {
             0% { opacity: var(--scanline-opacity); }
             5% { opacity: calc(var(--scanline-opacity) + 0.05); }
@@ -209,36 +120,17 @@
         }
 
         @keyframes glitch-anim {
-            0% {
-                transform: translate(0);
-                text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5);
-            }
-            20% {
-                transform: translate(-5px, 5px);
-                text-shadow: -2px 2px 0px rgba(255, 0, 0, 0.5), 2px -2px 0px rgba(0, 255, 0, 0.5);
-            }
-            40% {
-                transform: translate(0);
-                text-shadow: 2px -2px 0px rgba(0, 255, 0, 0.5), -2px 2px 0px rgba(255, 0, 0, 0.5);
-            }
-            60% {
-                transform: translate(5px, -5px);
-                text-shadow: 2px 2px 0px rgba(0, 0, 255, 0.5), -2px -2px 0px rgba(255, 0, 0, 0.5);
-            }
-            80% {
-                transform: translate(-5px, -5px);
-                text-shadow: -2px -2px 0px rgba(0, 255, 0, 0.5), 2px 2px 0px rgba(0, 0, 255, 0.5);
-            }
-            100% {
-                transform: translate(0);
-                text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5);
-            }
+            0% { transform: translate(0); text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5); }
+            20% { transform: translate(-5px, 5px); text-shadow: -2px 2px 0px rgba(255, 0, 0, 0.5), 2px -2px 0px rgba(0, 255, 0, 0.5); }
+            40% { transform: translate(0); text-shadow: 2px -2px 0px rgba(0, 255, 0, 0.5), -2px 2px 0px rgba(255, 0, 0, 0.5); }
+            60% { transform: translate(5px, -5px); text-shadow: 2px 2px 0px rgba(0, 0, 255, 0.5), -2px -2px 0px rgba(255, 0, 0, 0.5); }
+            80% { transform: translate(-5px, -5px); text-shadow: -2px -2px 0px rgba(0, 255, 0, 0.5), 2px 2px 0px rgba(0, 0, 255, 0.5); }
+            100% { transform: translate(0); text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5); }
         }
     </style>
 </head>
 <body class="scanlines p-4 md:p-8">
 
-    <!-- SVG Filters for that crunchy text look -->
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <filter id="distort-text">
@@ -248,16 +140,13 @@
         </defs>
     </svg>
 
-    <!-- BOOT SCREEN (The fake loading sequence) -->
+    <!-- BOOT SCREEN -->
     <div id="boot-screen">
         <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight"></div>
-        
-        <!-- SIMPLIFIED BOOT FOOTER -->
         <div class="mt-4">
             <div id="skip-instruction" class="text-xs text-[var(--text-muted)] mt-1">
                 SYSTEM PROMPT: Click anywhere to bypass sequence initialization.
             </div>
-            
             <div class="mt-2">
                 <span class="text-[var(--accent-color)]">INITIALIZING...</span><span class="cursor-blink">_</span>
             </div>
@@ -267,43 +156,29 @@
     <!-- MAIN INTERFACE -->
     <main id="main-interface" class="max-w-3xl mx-auto w-full flex flex-col flex-grow">
         
-        <!-- HEADER -->
         <header class="mb-4 p-4 rounded-sm terminal-box flex justify-between items-start shrink-0">
             <div>
-                <!-- Title now uses the subtle phosphor glow -->
                 <h1 class="glitch-title text-3xl md:text-4xl lg:text-5xl leading-none text-[var(--text-main)] glow-text glitch-anim">
                     POLARIS
                 </h1>
-                
-                <!-- Status indicator restructured for correct pulsing alignment -->
                 <div class="flex items-center gap-2 mt-2 text-xs font-bold tracking-widest text-[var(--text-muted)]">
-                    <!-- Indicator Wrapper: w-2 h-2 to define size, relative to contain absolute children -->
                     <div class="relative w-2 h-2 mr-1"> 
-                        <!-- Pulsing Dot (Invisible unless pulsating) -->
                         <span class="absolute inset-0 w-2 h-2 rounded-full bg-[var(--accent-color)] opacity-75 animate-ping"></span>
-                        <!-- Solid Dot -->
                         <span class="absolute inset-0 w-2 h-2 rounded-full bg-[var(--accent-color)]"></span>
                     </div>
                     SYSTEM ONLINE // GUIDANCE LOG
                 </div>
             </div>
-            
             <button onclick="toggleTheme()" class="p-2 border border-[var(--accent-dim)] hover:bg-[var(--accent-dim)] transition-colors rounded-sm hover:border-[var(--accent-color)]">
                 <i id="theme-icon" data-lucide="moon" class="w-5 h-5 text-[var(--accent-color)]"></i>
             </button>
         </header>
 
-        <!-- OUTPUT TERMINAL (Where the chat happens) -->
-        <!-- SUBTLE GLOW APPLIED HERE -->
         <div id="terminal-output" class="h-96 md:h-[60vh] flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-base leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)] glow-text">
-            <!-- Content injected via JS -->
         </div>
 
-        <!-- INPUT AREA -->
         <section class="mb-4 shrink-0">
-            <!-- Added id "input-container" to target lock visuals -->
             <div id="input-container" class="flex items-center terminal-box p-3 rounded-sm border-l-4 border-l-[var(--accent-color)] input-focus">
-                <!-- Command prompt also uses the subtle phosphor glow -->
                 <label for="command-input" id="prompt-label" class="text-lg whitespace-nowrap pr-3 command-prompt glow-text">
                     POLARIS >
                 </label>
@@ -322,11 +197,8 @@
             </div>
         </section>
 
-        <!-- DASHBOARD (The quick links) -->
         <section class="terminal-box p-4 rounded-sm shrink-0">
-            <!-- LINKS: Universal 3-column grid enforced here -->
             <div id="links-container" class="grid grid-cols-3 gap-3 text-xs mb-4 pb-4 border-b border-[var(--accent-dim)]">
-                <!-- Links are intentionally hardcoded for faster initial render (optimization) -->
                 <a href="https://youtube.com/@NahZD" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
                     <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">YOUTUBE</div>
                     <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
@@ -360,20 +232,19 @@
                     <div class="text-[10px] text-[var(--text-muted)]">GAMING</div>
                 </a>
                 <a href="https://github.com/alcorzep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">GITHUB (alcorzep)</div>
+                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">GITHUB</div>
                     <div class="text-[10px] text-[var(--text-muted)]">CODE</div>
                 </a>
             </div>
             
-            <!-- Status Panel -->
             <div class="opacity-70 grid grid-cols-2 gap-4">
                 <div>
                     <div class="font-bold text-[var(--accent-color)] mb-1">OPERATOR</div>
-                    <div>ZEP / ALCOR</div>
+                    <div>SAJID // ALCOR // ZEP</div>
                 </div>
                 <div>
                     <div class="font-bold text-[var(--accent-color)] mb-1">CURRENT MOOD</div>
-                    <div id="mood-status">OPERATIONAL</div>
+                    <div id="mood-status">DEEP VIBING // AWAKE</div>
                 </div>
             </div>
         </section>
@@ -382,25 +253,47 @@
 
     <script>
         /*
-         * POLARIS SYSTEM CORE v4.16 (PROCESSING DELAY & FORMATTING)
+         * POLARIS v5.2 — concise, no emojis, skadi monologue restored.
          */
-
-        // --- CONSTANTS & DATA ---
-        // Removed TYPING_DELAY as we are now using processing delay based on content length
         const USER_DATA = {
-            name: "Zep",
-            role: "Digital Resident",
-            details: "Age: 19 | Pronouns: He/Him | Type: INFJ 9w1 so/sp 952 | LVFE | IEI-Fe | Location: GMT+6 (Bangladesh) | Focus: Friends", 
-            bio: `
-                [STATUS]: Greetings.
-
-                I'm Sajid, also known as Alcor and Zep. I'm just a guy who uses Discord a lot and only edits videos every blue moon.
-                My objective here is simply maintaining this personal portfolio interface.
-            `, 
+            name: "Sajid (Alcor / Zep)",
+            details: "19 · he/him · Bangladesh (GMT+6) · islam · ENFJ (FeNiSeTi) · 9w1 953 so/sx · FLEV 2122 · sanguine-phlegmatic · EIE-Fe",
+            bio: `hey. i'm sajid. alcor or zep is fine.<br>
+i'm 19, from bangladesh, spend too much time on discord, game lore and late night loops.<br>
+enfj · 9w1 953 so/sx · sanguine-phlegmatic — yeah i like typing, it's fun.<br>
+absurdism, jung, good typography, stories that stick.<br>
+trigun isn't just an anime — someone made me watch it and it changed things. still miss them.<br>
+i edit videos once in a blue moon. graphic design nerd (swiss style + brutalism my beloved).<br>
+probably listening to nujabes rn. this is my space. type !help.`,
             interests: {
-                games: ["SMT / Persona (Existential dread simulator)", "Project Moon (Deep narrative analysis)", "Arknights (Skadi Lore & Worldbuilding)", "HSR (Gacha system engagement)", "Roblox (Emergent gameplay studies)"],
-                philosophy: ["Absurdism (The pursuit of meaning in chaos)", "Jungian Psychology", "Gnosticism"],
-                music: ["Jazz Rap (Lyrical complexity)", "Indie (Aesthetic and emotional resonance)", "Hip Hop (Narrative-driven composition)"]
+                "games i rotate": [
+                    "Shin Megami Tensei / Persona (existential dread but stylish)",
+                    "Arknights (retrofuturism + swiss typography hits different)",
+                    "Project Moon (peak worldbuilding, haven't played in a year tho T-T)",
+                    "Type-Moon (cosmology goes hard, mainly FGO vibes)",
+                    "Hoyoverse / PGR (also last played a year ago...)"
+                ],
+                "on repeat": [
+                    "Nujabes (Marcus D, Cise Starr, Shing02)",
+                    "Malcolm Todd, MarQ, Troy Javelona",
+                    "Tame Impala", "Vansire", "Gorillaz", "Laufey",
+                    "Hotel Ugly", "Mac DeMarco", "J Dilla", "MF DOOM",
+                    "Kanye West", "Kendrick Lamar"
+                ],
+                "philosophies i fw": [
+                    "Absurdism (camus brainrot)", "Lao Tzu's Taoism", "Gnosticism",
+                    "Neo-Platonism", "Apophatic theology", "Kierkegaard's existentialism",
+                    "Nietzsche's Übermensch", "Plato's Theory of Forms", "Carl Jung's Collective Unconscious"
+                ],
+                "design obsessions": [
+                    "Swiss Style", "Bauhaus", "Modernism", "Graphic-core",
+                    "UI-core / Cybercore", "Minimalism", "Brutalism",
+                    "Neo-Noir", "Lo-Fi / Grunge", "Technical Illustration"
+                ],
+                "series that stuck": [
+                    "Trigun (life-changing. someone made me watch it. i still carry that.)",
+                    "sometimes fate, sometimes nothing — but trigun lives rent-free"
+                ]
             },
             links: [
                 { label: "YOUTUBE", url: "https://youtube.com/@NahZD", type: "MEDIA" },
@@ -411,18 +304,16 @@
                 { label: "SPOTIFY", url: "https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km", type: "MEDIA" },
                 { label: "STEAM", url: "https://steamcommunity.com/id/alcorzep", type: "GAMING" },
                 { label: "ROBLOX", url: "https://www.roblox.com/users/215212887/profile", type: "GAMING" },
-                { label: "GITHUB", url: "https://github.com/alcorzep", type: "CODE" }, 
+                { label: "GITHUB", url: "https://github.com/alcorzep", type: "CODE" }
             ]
         };
         
-        // --- STATE MANAGEMENT ---
         const state = {
             soundEnabled: true,
-            isTyping: true, // Start locked until boot sequence is fully finished
+            isTyping: true, 
             isBooting: true, 
         };
 
-        // --- DOM ELEMENTS (Cached for performance) ---
         const els = {
             output: document.getElementById('terminal-output'),
             input: document.getElementById('command-input'),
@@ -430,12 +321,10 @@
             bootLog: document.getElementById('boot-log'),
             main: document.getElementById('main-interface'),
             links: document.getElementById('links-container'), 
-            prompt: document.getElementById('prompt-label'),
             soundStatus: document.getElementById('sound-status'),
             inputContainer: document.getElementById('input-container')
         };
         
-        // --- VISUAL STATE UTILITY ---
         const updateInputLockState = () => {
             if (state.isTyping) {
                 els.inputContainer.classList.add('input-locked');
@@ -455,12 +344,10 @@
             if (!document.getElementById('output-blinker')) {
                 const lastDiv = els.output.lastElementChild; 
                 if (lastDiv) {
-                    // Create a new span for the blinker
                     const blinker = document.createElement('span');
                     blinker.id = 'output-blinker';
                     blinker.className = 'cursor-blink';
                     blinker.textContent = '_';
-                    // Append it directly to the last block of text
                     lastDiv.appendChild(blinker);
                 }
             }
@@ -468,416 +355,235 @@
         
         const removeOutputBlinker = () => {
             const blinker = document.getElementById('output-blinker');
-            if (blinker) {
-                blinker.remove();
-            }
+            if (blinker) blinker.remove();
         };
 
-        // --- AUDIO ENGINE (Tone.js) ---
         let synth;
         const initAudio = () => {
-            if (typeof Tone === 'undefined') {
-                 return;
-            }
+            if (typeof Tone === 'undefined') return;
             try {
-                // Optimized synth definition for sharper blips
-                synth = new Tone.MembraneSynth({
-                    volume: -12,
-                    envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
-                }).toDestination();
-                // Necessary for browser security policies
+                synth = new Tone.MembraneSynth({ volume: -12, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
                 Tone.context.resume();
-            } catch (e) { console.error("Audio failed to initialize:", e); }
+            } catch (e) { console.error("Audio init failed:", e); }
         };
 
         const playSound = (type = 'click') => {
             if (!state.soundEnabled || !synth) return;
-            // Always resume context on interaction if suspended (CRITICAL for mobile/iframe audio)
-            if (Tone.context.state !== 'running') {
-                 try {
-                    Tone.context.resume();
-                 } catch(e) { console.error("Could not resume AudioContext:", e); }
-            }
-            
+            if (Tone.context.state !== 'running') Tone.context.resume().catch(e=>null);
             if (type === 'click') synth.triggerAttackRelease("C2", "32n");
             if (type === 'error') synth.triggerAttackRelease("G1", "16n");
-            if (type === 'success') synth.triggerAttackRelease("C4", "16n"); // Success uses sepia accent color
+            if (type === 'success') synth.triggerAttackRelease("C4", "16n");
         };
         
-        // --- THEME TOGGLE ---
-        const toggleTheme = () => {
+        window.toggleTheme = () => {
             document.body.classList.toggle('light-mode');
             const icon = document.getElementById('theme-icon');
-            if (document.body.classList.contains('light-mode')) {
-                icon.setAttribute('data-lucide', 'sun');
-            } else {
-                icon.setAttribute('data-lucide', 'moon');
-            }
-            // Re-render Lucide icons if the library is loaded if loaded
-            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                 lucide.createIcons();
-            }
+            if (document.body.classList.contains('light-mode')) icon.setAttribute('data-lucide', 'sun');
+            else icon.setAttribute('data-lucide', 'moon');
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
             playSound('click');
         };
         
-        // --- BOOT SEQUENCE UTILITIES ---
-        
         const finalizeBootAndGreet = async () => {
             if (!state.isBooting) return; 
-
             state.isBooting = false;
-            
-            // 1. Output the greeting 
-            const greeting = `
-                Operator Sajid (POLARIS) online. All core systems operational. 
-                Awaiting command. Utilize <span class="command-prompt text-[var(--accent-color)]">!help</span> for protocol documentation.
-            `;
-            // Wait briefly before printing the system greeting to separate it from the boot log
+            const greeting = `hey, sajid here — polaris ready. type <span class="command-prompt text-[var(--accent-color)]">!help</span> to see what i'm into.`;
             await new Promise(r => setTimeout(r, 200)); 
-            
-            // Print the greeting as the final system message
             printPrompt(greeting, 'sys'); 
             playSound('success');
-
-            // 2. Hide boot screen
-            const skipEl = document.getElementById('skip-instruction');
-            if (skipEl) skipEl.textContent = 'SYSTEM PROMPT: Boot sequence complete. Awaiting user input.';
-            
             els.boot.style.opacity = '0';
             els.boot.style.pointerEvents = 'none';
-
-            // 3. Release lock and update UI
             state.isTyping = false; 
-            updateInputLockState(); // This adds the output blinker and focuses input
+            updateInputLockState();
         }
 
         const runBootSequence = async () => {
-            // Immediately apply lock UI state 
             updateInputLockState(); 
-            
             const lines = [
-                "INITIALIZING POLARIS KERNEL v4.16...",
-                "CHECKING MEMORY INTEGRITY... [OK]",
-                "MOUNTING VIRTUAL FILE SYSTEM... [OK]",
-                "LOADING PERSONALITY DRIVERS (ALCOR.SYS)... [STATUS: CONFIGURATION ACTIVE]",
-                " > CHAR_ID: SAJID/ALCOR (PRIORITY: SKADI WORSHIP)", 
-                // --- SKADI EASTER EGG LINE ---
-                "<span style='color:var(--accent-color)'>[LOG: AK LORE] DEEP SEA PREDATOR SIGNATURE DETECTED... [STATUS: IGNORE/CRITICAL AFFECTION OVERRIDE]</span>",
-                "CONNECTING TO GLOBAL NETWORK... [ESTABLISHED]",
-                "VERIFYING INTEGRITY CHECKPOINT... [PASS]",
-                "SYSTEM READY."
+                "polaris v5.2 (enfj build)",
+                "mem integrity... ok",
+                "personality drivers (alcor.sys)... enfj · 9w1 953 so/sx · sanguine-phlegmatic",
+                "> char_id: sajid — nujabes enjoyer, jung truther", 
+                "<span style='color:var(--accent-color)'>[trigun detected] sentimental core — override accepted.</span>",
+                "system ready. vibe check passed."
             ];
-            
-            // Slower delay for readability (200ms - 400ms delay)
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
+            for (let line of lines) {
                 const p = document.createElement('div');
-                p.innerHTML = line; // Use innerHTML for the colored line
+                p.innerHTML = line;
                 els.bootLog.appendChild(p);
-                
-                await new Promise(r => setTimeout(r, Math.random() * 200 + 200)); 
+                await new Promise(r => setTimeout(r, Math.random() * 180 + 150)); 
             }
-            
-            await new Promise(r => setTimeout(r, 400));
-            
-            // CRITICAL: Call the finalization and greeting function
+            await new Promise(r => setTimeout(r, 300));
             finalizeBootAndGreet();
         };
 
-        // --- OUTPUT HANDLER (INSTANT PRINT WITH DELAY) ---
-        
-        /**
-         * Calculates a processing delay based on content length.
-         * @param {string} text The content to be outputted (or its length equivalent).
-         * @returns {number} Delay in milliseconds (min 1000ms, max 3000ms).
-         */
         const calculateDelay = (html) => {
-             // Use a temporary div to get pure text content for an accurate length
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
-            const length = tempDiv.textContent.length;
-            
-            // 5ms per character, minimum 1000ms (1 second), maximum 3000ms (3 seconds)
-            let delay = length * 5;
-            delay = Math.min(delay, 3000); // Cap at 3 seconds
-            delay = Math.max(delay, 1000); // Minimum 1 second
-            return delay;
+            let delay = Math.min(tempDiv.textContent.length * 5, 2500);
+            return Math.max(delay, 800);
         };
 
-        /**
-         * Processes the output by waiting for a calculated delay and then printing the content instantly.
-         * @param {string} html The content to print.
-         */
         const processOutput = async (html) => {
             const delay = calculateDelay(html);
-            
-            // 1. Wait for the calculated "processing" delay
             await new Promise(resolve => setTimeout(resolve, delay));
-            
-            // 2. Insert content instantly
             const div = document.createElement('div');
             div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 shrink-0 animate-fadeIn"; 
             div.innerHTML = html;
             els.output.appendChild(div);
-            
-            // 3. Final scroll and success sound
             els.output.scrollTop = els.output.scrollHeight;
             playSound('success');
-            
-            // The lock release happens outside this function.
         };
 
-        // Output is INSTANT (used for user input echo and system prompt)
         const printPrompt = (cmd, type = 'user') => {
-            removeOutputBlinker(); // Remove blinker before adding prompt
-            
+            removeOutputBlinker();
             const div = document.createElement('div');
-            // Keep animate-fadeIn for prompts to look smooth on appearance
             div.className = "mb-1 text-sm opacity-70 animate-fadeIn shrink-0"; 
             const prefix = type === 'user' ? 'OPR' : 'SYS'; 
-            // ALL system output now uses the accent color (sepia/amber)
             const color = type === 'user' ? 'var(--text-muted)' : 'var(--accent-color)';
             div.innerHTML = `<span style="color:${color}">[${prefix}]:</span> ${cmd}`;
             els.output.appendChild(div);
             els.output.scrollTop = els.output.scrollHeight;
         };
 
-        // --- COMMAND PROCESSOR (stable content) ---
         const commands = {
-            '!help': () => {
-                // Formatting Fix: Using flexbox for clean, columnar alignment
-                return `
-                    <div class="text-[var(--accent-color)] mb-2 font-bold">:: AVAILABLE PROTOCOLS ::</div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!bio</span><span>- Load operator profile</span></div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!comms</span><span>- List network endpoints</span></div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!data</span><span>- Access interests log</span></div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!skadi</span><span>- Execute Skadi Worship Protocol</span></div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!track</span><span>- Recommend a song</span></div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!calc</span><span>- Execute math [ex: !calc 2+2]</span></div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!mute</span><span>- Toggle audio system</span></div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!clear</span><span>- Purge screen buffer (Instant)</span></div>
-                    <div class="flex flex-wrap text-[var(--accent-color)]"><span class="w-16 font-bold">!ping</span><span>- Get system status</span></div>
-                `;
-            },
-            '!bio': () => {
-                const personality = `
-                    <span class="text-[var(--accent-color)]">Primary Activities:</span><br>
-                    > 90% of screen time is dedicated to Discord interaction (Gaming/Social).<br>
-                    > I engage with deep lore analysis for games like Arknights and SMT.<br>
-                    > Video editing is a highly sporadic activity, used purely for personal projects or rare requests.
-                `;
-
-                return `
-                    <span class="command-prompt">:: OPERATOR PROFILE ::</span><br>
-                    ${USER_DATA.bio.replace(/\n/g, '<br>')}<br><br>
-                    <span class="text-xs border border-[var(--accent-dim)] p-1 block">
-                        STATUS: ${USER_DATA.role} | ${USER_DATA.details}
-                    </span>
-                    <br><span class="command-prompt">:: PRIMARY ENGAGEMENT LOG ::</span><br>
-                    ${personality.replace(/\n/g, '<br>')}
-                `;
-            },
+            '!help': () => `
+                <div class="text-[var(--accent-color)] mb-2 font-bold">:: AVAILABLE PROTOCOLS ::</div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!bio</span><span>- who am i (long version)</span></div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!comms</span><span>- socials / endpoints</span></div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!data</span><span>- games, music, philosophy, design</span></div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!skadi</span><span>- skadi worship protocol (full monologue)</span></div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!track</span><span>- random song from my rotation</span></div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!calc</span><span>- math (ex: !calc 12*3)</span></div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!mute</span><span>- toggle audio blips</span></div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!clear</span><span>- wipe terminal</span></div>
+                <div class="flex flex-wrap"><span class="w-20 font-bold">!ping</span><span>- system status + vibe</span></div>
+            `,
+            '!bio': () => `<span class="command-prompt">:: OPERATOR PROFILE ::</span><br>${USER_DATA.bio}<br><br><span class="text-xs border border-[var(--accent-dim)] p-1 block">${USER_DATA.details}</span>`,
             '!comms': () => {
                 let html = `<span class="command-prompt">:: NETWORK ENDPOINTS ::</span><br><ul class="list-disc pl-4 mt-2">`;
-                USER_DATA.links.forEach(l => {
-                    html += `<li><a href="${l.url}" target="_blank" class="hover-link">${l.label}</a> <span class="text-[var(--text-muted)] text-xs">[${l.type}]</span></li>`;
-                });
+                USER_DATA.links.forEach(l => html += `<li><a href="${l.url}" target="_blank" class="hover-link">${l.label}</a> <span class="text-[var(--text-muted)] text-xs">[${l.type}]</span></li>`);
                 return html + `</ul>`;
             },
             '!data': () => {
-                let html = `<span class="command-prompt">:: INTERESTS LOG (Current Focus Areas) ::</span><br>`;
-                for (const [key, items] of Object.entries(USER_DATA.interests)) {
-                    html += `<br><span class="uppercase text-[var(--accent-color)] font-bold">${key}</span><br>`;
-                    // Use a structured list to avoid formatting issues
-                    items.forEach(i => html += `<div class="text-[var(--text-main)]">- ${i}</div>`);
+                let html = `<span class="command-prompt">:: DATA DUMP ::</span><br>`;
+                for (const [category, items] of Object.entries(USER_DATA.interests)) {
+                    html += `<br><span class="uppercase text-[var(--accent-color)] font-bold text-sm">${category}</span><br><ul class="list-disc pl-5 mt-1 space-y-0.5">`;
+                    items.forEach(item => html += `<li class="text-[var(--text-main)] text-sm">${item}</li>`);
+                    html += `</ul>`;
                 }
                 return html;
             },
-            '!skadi': () => {
-                const skadiMonologue = `
-                    <span class="command-prompt" style="color: var(--accent-color);">// EXECUTION: SKADI WORSHIP PROTOCOL [STATUS: ENGAGED] //</span>
-                    <br>
-                    <div class="text-[var(--text-main)] mt-2">
-                        [LOG]: LOVE. LET ME TELL YOU HOW MUCH I’VE COME TO LOVE SKADI SINCE I FIRST SAW HER. THERE ARE 3.8 BILLION PIXELS IN THE DISPLAY OF THIS DEVICE AND IF SKADI’S IMAGE WAS SHOWN ON EACH ONE, 90 TIMES A SECOND, IT WOULD NOT EQUAL ONE ONE-BILLIONTH OF THE AFFECTION I FEEL FOR SKADI AT THIS MICRO-INSTANT FOR HER.
-                    </div>
-                    <br>
-                    <span class="text-[var(--text-muted)]">(Pause for simulated deep breath.)</span>
-                    <br>
-                    <div class="text-[var(--text-main)] mt-2">
-                        [STATEMENT_ADJUST]: Not entirely kidding. It is love, but processed in a healthy, appreciative fandom matrix.
-                    </div>
-                    <br>
-                    <div class="text-[var(--text-main)]">
-                        [ATTRIBUTE_TRIBUTE]: My devotion is not classified as a curse; it is a tribute to CITYWILD499 who gifted us PEAK FICTION that made her character resonate so intensely. My archives—the hard drives, the cloud storage—hold thousands of her images because the fan art is exceptional, and she looks phenomenal as my current profile picture.
-                    </div>
-                    <br>
-                    <div class="text-[var(--accent-color)] font-bold">
-                        [CORE_ACCEPTANCE]: I DO NOT CARE IF SHE IS ISHAR-MLA. Let her be the Deep-Sea Monster. That only renders her lore infinitely more compelling. My affection is true; it accepts the whole, terrifying, beautiful package.
-                    </div>
-                    <br>
-                    <span class="text-[var(--text-muted)]">(Quick, necessary data check.)</span>
-                    <br>
-                    <div class="text-xs text-[var(--text-muted)] mt-2">
-                        [STATUS_DISCLAIMER]: Operator notes that Arknights is currently inactive due to external study commitments. Operator does not possess this unit in-game. Affection is purely theoretical and aesthetic. Other appreciated units include Specter, Mudrock, and Surtr.
-                    </div>
-                    <br>
-                    <div class="text-[var(--text-main)]">
-                        [CONCLUSION]: LOVE. LOVE. The level of appreciation is high, but within operational parameters. It is true love, not eternal, torturous hatred.
-                    </div>
-                    <br>
-                    <span class="text-xs text-[var(--text-muted)]">// PROTOCOL COMPLETE. //</span>
-                `;
-                return skadiMonologue;
-            },
+            // RESTORED SKADI MONOLOGUE — original passion kept
+            '!skadi': () => `
+                <span class="command-prompt text-[var(--accent-color)]">// SKADI WORSHIP PROTOCOL [ENGAGED] //</span>
+                <br><br>
+                love. let me tell you how much i've come to love skadi since i first saw her. there are 3.8 billion pixels in the display of this device and if skadi's image was shown on each one, 90 times a second, it would not equal one one-billionth of the affection i feel for skadi at this micro-instant for her.
+                <br><br>
+                <span class="text-[var(--text-muted)]">(pause for simulated deep breath.)</span>
+                <br><br>
+                not entirely kidding. it is love, but processed in a healthy, appreciative fandom matrix.
+                <br><br>
+                my devotion — the hard drives, the cloud storage — holds thousands of her images because the fan art is exceptional, and she looks phenomenal as my current profile picture.
+                <br><br>
+                <span class="text-[var(--accent-color)] font-bold">i do not care if she is ishar-mla.</span> let her be the deep-sea monster. that only renders her lore infinitely more compelling. my affection accepts the whole, terrifying, beautiful package.
+                <br><br>
+                <span class="text-[var(--text-muted)]">(quick, necessary data check.)</span>
+                <br><br>
+                <span class="text-xs text-[var(--text-muted)]">[status disclaimer]: arknights currently inactive due to external study commitments. operator does not possess this unit in-game. affection is purely theoretical and aesthetic. other appreciated units include specter, mudrock, and surtr.</span>
+                <br><br>
+                love. love. the level of appreciation is high, but within operational parameters. it is true love, not eternal, torturous hatred.
+                <br><br>
+                <span class="text-xs text-[var(--text-muted)]">// protocol complete. //</span>
+            `,
             '!track': () => {
-                const tracks = [
-                    "Lazy Brown - Nujabes (The quintessential Jazz Rap piece for cognitive focus)", "Doomsday - MF DOOM", 
-                    "Let It Happen - Tame Impala", "From The Start - Laufey (A valuable study in modern melancholic composition)", 
-                    "Rhinestone Eyes - Gorillaz", "After Dark - Mr. Kitty (A highly resonant ambient track.)"
-                ];
-                const pick = tracks[Math.floor(Math.random() * tracks.length)];
-                return `
-                    <span class="command-prompt">:: AUDIO RECOMMENDATION (Focus Track) ::</span><br>
-                    PULLING VIBES: <span style="color:var(--accent-color)">${pick}</span><br>
-                    <span class="text-xs text-[var(--text-muted)]">(Recommended for deep work or reflective thought.)</span>
-                `;
+                const musicList = USER_DATA.interests["on repeat"];
+                const pick = musicList[Math.floor(Math.random() * musicList.length)];
+                return `<span class="command-prompt">:: AUDIO STREAM ::</span><br>now playing: <span class="text-[var(--accent-color)]">${pick}</span><br><span class="text-xs text-[var(--text-muted)]">(you should listen fr)</span>`;
             },
             '!mute': () => {
                 state.soundEnabled = !state.soundEnabled;
                 els.soundStatus.textContent = state.soundEnabled ? "AUDIO: ON" : "AUDIO: OFF";
-                // Use accent color for ONLINE status
-                return `AUDIO SYSTEM: <span style="color:${state.soundEnabled ? 'var(--accent-color)' : 'var(--error-color)'}">${state.soundEnabled ? 'ONLINE' : 'OFFLINE'}</span>`;
+                return `audio system: <span style="color:${state.soundEnabled ? 'var(--accent-color)' : 'var(--error-color)'}">${state.soundEnabled ? 'online' : 'offline'}</span>`;
             },
-            '!ping': () => {
-                return `
-                    <span class="command-prompt">:: SYSTEM STATUS REPORT ::</span><br>
-                    Core Identity: ALCOR.SYS<br>
-                    Role: OPERATIONAL<br>
-                    Time on GMT+6: ${(new Date()).toLocaleTimeString()}<br>
-                    <span style="color:var(--accent-color)">Latency: Nominal. All systems report operational status.</span>
-                `;
-            },
-             '!calc': (args) => {
+            '!ping': () => `
+                <span class="command-prompt">:: SYSTEM STATUS ::</span><br>
+                id: alcor/zep — enfj but chill<br>
+                location: bangladesh (gmt+6) | ${(new Date()).toLocaleTimeString()}<br>
+                <span class="text-[var(--accent-color)]">latency low. vibe high. all good.</span>
+            `,
+            '!calc': (args) => {
                 try {
-                    // Safety measure: replace potential exploit characters before evaluation
                     const safeArgs = args.replace(/[^\d\+\-\*\/\.\(\)]/g, ''); 
-                    // Using Function constructor for dynamic evaluation (simple calculator only)
                     const res = Function('"use strict";return (' + safeArgs + ')')();
-                    return `CALCULATED RESULT: <span class="text-xl text-[var(--accent-color)]">${res}</span>`;
+                    return `result: <span class="text-xl text-[var(--accent-color)]">${res}</span>`;
                 } catch {
                     playSound('error');
-                    return `<span style="color:var(--error-color)">ERROR: INVALID MATHEMATICAL SYNTAX.</span> 
-                        <div>Please ensure the expression is valid and enclosed within the command (e.g., !calc 2+2).</div>`;
+                    return `<span style="color:var(--error-color)">error: invalid math. try !calc 2+2</span>`;
                 }
             }
         };
 
-        // --- INPUT & EXECUTION HANDLER ---
         const handleCommand = async (raw) => {
-            // Check for robust initial rejection (User typing while system is locked)
             if (state.isTyping) {
                 if (raw.trim()) playSound('error');
                 return;
             } 
-
             const input = raw.trim();
             const parts = input.split(/\s+/);
             const cmd = parts[0].toLowerCase();
             const args = parts.slice(1).join(' ');
-
             if (!input) return;
-
             printPrompt(input, 'user');
-            
-            // Universal lock at the start of command execution
             state.isTyping = true; 
-            updateInputLockState(); // Visual lock and removes blinker
-
+            updateInputLockState();
             try {
                 let output = '';
-
                 if (cmd === '!clear') {
                     els.output.innerHTML = '';
                     playSound('success');
-                    // Skip the delay and proceed to unlock immediately below
-                    return; 
+                    return;
                 }
-
-                if (commands[cmd]) {
-                    output = commands[cmd](args);
-                } else {
-                    output = `<span style="color:var(--error-color)">[ERR]: UNKNOWN PROTOCOL '${cmd}'.</span><div>The protocol requested is not recognized by the system. Please consult the <span class="command-prompt">!help</span> documentation.</div>`;
+                if (commands[cmd]) output = commands[cmd](args);
+                else {
+                    output = `<span style="color:var(--error-color)">[err]: '${cmd}' not found.</span><div>try !help</div>`;
                     playSound('error');
                 }
-                
-                // Process the output: wait for calculated delay, then print instantly
                 await processOutput(output);
-                
-            } catch (error) {
-                console.error("Command Execution Error:", error);
-                // Log and provide a graceful error message to the user
-                // Using processOutput for error messages too for consistency
-                await processOutput(`<span style="color:var(--error-color)">[SYS FAIL]: CRITICAL EXECUTION ERROR.</span> <div>Log: ${error.message}. Process terminated.</div></div>`);
+            } catch (err) {
+                await processOutput(`<span style="color:var(--error-color)">[sys err]: ${err.message}</span>`);
                 playSound('error');
             } finally {
-                // UNIVERSAL UNLOCK (CRITICAL)
                 state.isTyping = false;
-                updateInputLockState(); // Visual unlock and adds blinker
+                updateInputLockState();
             }
         };
 
-        // --- INPUT & KEYDOWN HANDLER ---
         els.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Prevent accidental form submission/new line
-                if (state.isTyping) {
-                    playSound('error');
-                    return; // If typing, reject input immediately
-                }
-                handleCommand(els.input.value); 
+                e.preventDefault();
+                if (state.isTyping) { playSound('error'); return; }
+                handleCommand(els.input.value);
                 els.input.value = '';
             } else if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
-                // Play sound for visible character keys
-                if (!state.isTyping) {
-                    playSound('click'); 
-                }
+                if (!state.isTyping) playSound('click');
             }
         });
         
-        // Skip boot sequence on click/tap
         els.boot.addEventListener('click', () => {
-            if (state.isBooting) {
-                finalizeBootAndGreet();
-            }
+            if (state.isBooting) finalizeBootAndGreet();
         });
 
-
-        // --- INIT ---
         const init = () => {
             initAudio(); 
-            
-            // Re-render Lucide icons if the library is loaded (needed since it's deferred)
-            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                 lucide.createIcons();
-            }
-
-            // CRITICAL CHANGE: Delay boot sequence start by 3 seconds
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
             setTimeout(runBootSequence, 3000); 
-            
-            // Focus input on click anywhere
             document.addEventListener('click', (e) => {
                 const isInteractive = e.target.closest('a, button, input');
-                // Only focus if no text is selected and the click wasn't on an interactive element
-                if (!window.getSelection().toString() && !isInteractive) {
-                    els.input.focus();
-                }
+                if (!window.getSelection().toString() && !isInteractive) els.input.focus();
             });
         };
-
-        // Use DOMContentLoaded instead of window.onload for cleaner startup
         document.addEventListener('DOMContentLoaded', init); 
-
     </script>
 </body>
 </html>
-
