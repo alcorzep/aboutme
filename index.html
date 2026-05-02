@@ -1,690 +1,771 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=yes">
-  <meta name="color-scheme" content="dark light">
-  <title>POLARIS // SYSTEM ROOT</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=yes">
+    <meta name="color-scheme" content="dark light">
+    <title>POLARIS // SYSTEM ROOT</title>
 
-  <!-- Preconnects -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
-  <link rel="preconnect" href="https://unpkg.com">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
-  <!-- Tailwind Base -->
-  <script src="https://cdn.tailwindcss.com" defer></script>
+    <script src="https://cdn.tailwindcss.com" defer>
+    </script>
 
-  <!-- Fonts: IBM Plex Mono (Terminal) + Inter (Headlines) -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@900&display=swap" as="style">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@900&display=swap" rel="stylesheet">
+    <!-- DM Sans (Coolvetica alternative) + JetBrains Mono -->
+    <link rel="preload"
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
+    as="style">
+    <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
-  <!-- Icons & Audio Engine -->
-  <script src="https://unpkg.com/lucide@latest" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest" defer>
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer>
+    </script>
 
-  <style>
-    :root {
-      /* Core Palette – clean deep blue, no grain */
-      --bg-color: #0200c7;
-      --glass-bg: rgba(255, 255, 255, 0.08);
-      --text-main: #ffffff;
-      --text-muted: rgba(255, 255, 255, 0.55);
-      --accent-color: #ffffff;
-      --accent-dim: rgba(255, 255, 255, 0.25);
-      --error-color: #ff3366;
-      --border-heavy: 4px solid var(--text-main);
-      --border-thin: 2px solid var(--text-main);
+    <style>
+        :root {
+            --bg-color: #0200c7;
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.5);
+            --accent-color: #ffffff;
+            --accent-dim: rgba(255, 255, 255, 0.22);
+            --error-color: #ff3366;
+            --border-heavy: 3px solid var(--text-main);
+            --border-thin: 2px solid var(--text-main);
 
-      /* RGB Accents – only on edges */
-      --c-red: rgba(255, 0, 85, 0.6);
-      --c-cyan: rgba(0, 255, 255, 0.6);
+            /* RGB glow – contained to edge only */
+            --glow-red: rgba(255, 0, 85, 0.6);
+            --glow-cyan: rgba(0, 200, 255, 0.55);
+            --scanline-opacity: 0.05;
+        }
 
-      /* Scanlines remain, no grain */
-      --scanline-opacity: 0.07;
-    }
+        .light-mode {
+            --bg-color: #f4f5f7;
+            --glass-bg: rgba(2, 0, 199, 0.06);
+            --text-main: #0200c7;
+            --text-muted: rgba(2, 0, 199, 0.5);
+            --accent-color: #0200c7;
+            --accent-dim: rgba(2, 0, 199, 0.25);
+            --glow-red: rgba(220, 0, 70, 0.5);
+            --glow-cyan: rgba(0, 130, 210, 0.45);
+        }
 
-    .light-mode {
-      --bg-color: #f8f9fa;
-      --glass-bg: rgba(2, 0, 199, 0.08);
-      --text-main: #0200c7;
-      --text-muted: rgba(2, 0, 199, 0.6);
-      --accent-color: #0200c7;
-      --accent-dim: rgba(2, 0, 199, 0.3);
-      --c-red: rgba(255, 0, 85, 0.8);
-      --c-cyan: rgba(0, 150, 255, 0.8);
-      --border-heavy: 4px solid var(--text-main);
-      --border-thin: 2px solid var(--text-main);
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+        html {
+            height: 100%;
+        }
 
-    html {
-      height: 100%;
-    }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            transition: color 0.15s, background-color 0.15s;
+            overflow: hidden;
+            position: relative;
+            letter-spacing: -0.01em;
+            line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      font-family: 'IBM Plex Mono', monospace;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      transition: color 0.15s, background-color 0.15s;
-      overflow-x: hidden;
-      position: relative;
-      letter-spacing: -0.02em;
-      line-height: 1.5;
-      -webkit-tap-highlight-color: transparent;
-      /* NO grain overlay */
-    }
+        /* Scanlines only – no grain */
+        body.scanlines::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 3px;
+            z-index: 91;
+            pointer-events: none;
+            opacity: var(--scanline-opacity);
+        }
 
-    /* Scanlines only – subtle line pattern, no grain */
-    body.scanlines::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-      background-size: 100% 3px;
-      z-index: 91;
-      pointer-events: none;
-      opacity: var(--scanline-opacity);
-    }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-dim);
+            border-radius: 0;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-main);
+        }
 
-    /* No other noise overlays */
+        ::selection {
+            background: var(--text-main);
+            color: var(--bg-color);
+        }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--bg-color);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--accent-dim);
-      border-radius: 0;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--text-main);
-    }
+        input:focus {
+            outline: none;
+        }
 
-    ::selection {
-      background: var(--text-main);
-      color: var(--bg-color);
-    }
+        /* Headlines – DM Sans (Coolvetica alt) */
+        .glitch-title {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            text-transform: uppercase;
+            font-style: italic;
+            line-height: 0.9;
+        }
 
-    input:focus {
-      outline: none;
-    }
+        .white-block {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            display: inline-block;
+            padding: 0.1rem 0.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-family: 'DM Sans', sans-serif;
+            font-style: italic;
+            letter-spacing: -0.01em;
+            box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.12);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .white-block:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.12);
+        }
 
-    /* Typography */
-    .glitch-title {
-      font-family: 'Inter', sans-serif;
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      text-transform: uppercase;
-      font-style: italic;
-      line-height: 0.9;
-    }
+        /* Hover link – clean */
+        .hover-link {
+            transition: all 0.15s;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+            word-break: break-word;
+        }
+        .hover-link:hover,
+        .hover-link:active {
+            border-bottom-color: var(--text-main);
+            transform: skewX(-4deg);
+        }
 
-    .white-block {
-      background-color: var(--text-main);
-      color: var(--bg-color);
-      display: inline-block;
-      padding: 0.1rem 0.5rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      font-family: 'Inter', sans-serif;
-      font-style: italic;
-      letter-spacing: -0.02em;
-      box-shadow: 3px 3px 0px rgba(0,0,0,0.15);
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-    }
-    .white-block:active {
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0px rgba(0,0,0,0.15);
-    }
+        /* ── CONTAINED RGB GLOW – only on the header edge, no screen bleed ── */
+        .header-edge-wrapper {
+            position: relative;
+            overflow: visible;
+        }
+        .rgb-edge-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            border-radius: 1px;
+            background: linear-gradient(90deg,
+                    var(--glow-red),
+                    var(--glow-cyan),
+                    var(--glow-red));
+            background-size: 200% 100%;
+            animation: shimmer 2.5s linear infinite;
+            /* soft glow contained to the line itself */
+            box-shadow:
+                0 0 6px var(--glow-red),
+                0 0 10px var(--glow-cyan);
+            z-index: 1;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 200% 50%;
+            }
+        }
 
-    /* Edge RGB only on specific elements */
-    .edge-rgb {
-      text-shadow: 1px 0 0 var(--c-red), -1px 0 0 var(--c-cyan);
-    }
+        /* Input states */
+        .input-focus:focus-within {
+            background-color: var(--glass-bg);
+        }
+        .input-locked .command-prompt {
+            color: var(--error-color) !important;
+            opacity: 0.6;
+        }
+        .input-locked input {
+            cursor: wait;
+            opacity: 0.4;
+        }
 
-    .hover-link {
-      transition: all 0.15s;
-      border-bottom: 2px solid transparent;
-      display: inline-block;
-      word-break: break-word;
-    }
-    .hover-link:hover, .hover-link:active {
-      border-bottom-color: var(--text-main);
-      transform: skewX(-5deg);
-      text-shadow: 1px 0 0 var(--c-red), -1px 0 0 var(--c-cyan);
-    }
+        /* Boot screen */
+        #boot-screen {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-color);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.5rem;
+            font-size: 14px;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: opacity 0.25s ease;
+        }
+        @media (min-width: 640px) {
+            #boot-screen {
+                padding: 2rem;
+                font-size: 16px;
+            }
+        }
 
-    .input-focus:focus-within {
-      background-color: var(--glass-bg);
-    }
-    .input-locked .command-prompt {
-      color: var(--error-color) !important;
-      opacity: 0.6;
-    }
-    .input-locked input {
-      cursor: wait;
-      opacity: 0.4;
-    }
+        .cursor-blink {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
 
-    /* Boot screen */
-    #boot-screen {
-      position: fixed;
-      inset: 0;
-      background-color: var(--bg-color);
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 1.5rem;
-      font-size: 14px;
-      color: var(--text-main);
-      cursor: pointer;
-      transition: opacity 0.25s ease;
-    }
-    @media (min-width: 640px) {
-      #boot-screen {
-        padding: 2rem;
-        font-size: 16px;
-      }
-    }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                filter: blur(1px);
+                transform: translateY(2px);
+            }
+            to {
+                opacity: 1;
+                filter: blur(0);
+                transform: translateY(0);
+            }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
 
-    .cursor-blink {
-      animation: blink 1s step-end infinite;
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
+        /* Pagination decor – hidden on mobile */
+        .pagination-decor {
+            position: fixed;
+            bottom: 1.2rem;
+            right: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0.75;
+            mix-blend-mode: difference;
+        }
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            border: 2px solid var(--text-main);
+        }
+        .dot.filled {
+            background-color: var(--text-main);
+        }
+        .tracking-num {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            line-height: 1;
+            margin-left: 0.3rem;
+        }
 
-    @keyframes fadeIn {
-      from { opacity: 0; filter: blur(2px); transform: translateY(4px); }
-      to { opacity: 1; filter: blur(0); transform: translateY(0); }
-    }
-    .animate-fadeIn {
-      animation: fadeIn 0.25s ease-out forwards;
-    }
+        @media (max-width: 639px) {
+            .pagination-decor {
+                display: none;
+            }
+            .glitch-title {
+                letter-spacing: -0.02em;
+            }
+        }
 
-    /* Only shimmer on border bottom – subtle */
-    @keyframes shimmer {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 200% 50%; }
-    }
-    .rgb-border-bottom {
-      background: linear-gradient(90deg, var(--c-red), var(--c-cyan), var(--c-red));
-      background-size: 200% 100%;
-      animation: shimmer 3s linear infinite;
-    }
-
-    /* Pagination decor – hidden on mobile */
-    .pagination-decor {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      z-index: 50;
-      pointer-events: none;
-      opacity: 0.8;
-      mix-blend-mode: difference;
-    }
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: 2px solid var(--text-main);
-      box-shadow: 1px 0 0 var(--c-red), -1px 0 0 var(--c-cyan);
-    }
-    .dot.filled {
-      background-color: var(--text-main);
-    }
-    .tracking-num {
-      font-family: 'Inter', sans-serif;
-      font-weight: 900;
-      font-size: 1.8rem;
-      line-height: 1;
-      margin-left: 0.4rem;
-    }
-
-    @media (max-width: 639px) {
-      .pagination-decor {
-        display: none;
-      }
-      .glitch-title {
-        letter-spacing: -0.02em;
-      }
-    }
-  </style>
+        /* Dashboard link cards */
+        .dash-card {
+            transition: all 0.2s;
+        }
+        .dash-card:hover {
+            border-color: var(--accent-color);
+            background: var(--glass-bg);
+        }
+        .dash-card:hover .dash-arrow {
+            transform: translateX(3px);
+        }
+        .dash-arrow {
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body class="scanlines">
 
-  <!-- BOOT SCREEN -->
-  <div id="boot-screen">
-    <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight text-xs sm:text-sm space-y-1"></div>
-    <div class="mt-4 sm:mt-6 flex flex-col gap-2">
-      <div class="w-full h-2 border border-white/30 bg-white/10">
-        <div id="boot-progress" class="h-full bg-white transition-all duration-300" style="width: 0%;"></div>
-      </div>
-      <div id="skip-instruction" class="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1 tracking-widest uppercase">
-        SYSTEM PROMPT: Click anywhere to bypass initialization.
-      </div>
-      <div class="mt-2 font-bold text-sm uppercase tracking-widest edge-rgb">
-        <span>INITIALIZING...</span><span class="cursor-blink">_</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN INTERFACE -->
-  <main id="main-interface" class="max-w-4xl mx-auto w-full flex flex-col flex-grow relative z-10 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
-    
-    <!-- Header with subtle RGB bottom border -->
-    <header class="mb-4 sm:mb-6 pb-3 sm:pb-4 relative shrink-0">
-      <div class="flex justify-between items-start flex-wrap gap-3">
-        <div>
-          <h1 class="glitch-title text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-none text-[var(--text-main)] tracking-tighter">
-            POLARIS
-          </h1>
-          <div class="flex items-center gap-2 mt-1 sm:mt-2 text-xs sm:text-sm font-bold tracking-[0.15em] text-[var(--text-main)] uppercase">
-            <span class="w-2 h-2 bg-[var(--text-main)] rounded-full animate-pulse"></span>
-            SYSTEM ROOT // GUIDANCE LOG V.2.0
-          </div>
-        </div>
-        <button onclick="toggleTheme()" class="p-2 sm:p-2 border-2 border-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-color)] transition-colors rounded-none shrink-0" aria-label="Toggle Theme">
-          <i id="theme-icon" data-lucide="moon" class="w-5 h-5 sm:w-6 sm:h-6"></i>
-        </button>
-      </div>
-      <div class="absolute bottom-0 left-0 w-full h-0.5 sm:h-1 rgb-border-bottom"></div>
-    </header>
-
-    <!-- Terminal Output Area (scrollable) -->
-    <div id="terminal-output" class="h-72 sm:h-80 md:h-[55vh] flex-grow mb-4 p-3 sm:p-4 overflow-y-auto font-mono text-sm sm:text-base md:text-lg leading-relaxed space-y-2 sm:space-y-3 border-l-2 border-[var(--accent-dim)] bg-[rgba(0,0,0,0.05)]">
-      <!-- Dynamic content injected here -->
-    </div>
-
-    <!-- Command Input Section -->
-    <section class="mb-4 shrink-0">
-      <div id="input-container" class="flex items-center p-2 sm:p-3 border-2 border-[var(--text-main)] bg-[var(--glass-bg)] input-focus transition-colors">
-        <label for="command-input" id="prompt-label" class="text-base sm:text-lg md:text-xl whitespace-nowrap pr-2 sm:pr-3 font-bold edge-rgb select-none">
-          C:\>
-        </label>
-        <input
-          type="text"
-          id="command-input"
-          class="w-full bg-transparent outline-none border-none font-mono text-base sm:text-lg md:text-xl text-[var(--text-main)] placeholder-[var(--text-muted)] uppercase tracking-wider py-1"
-          placeholder="ENTER COMMAND..."
-          autocomplete="off"
-          autofocus
-        >
-      </div>
-      <div class="flex justify-between mt-2 text-[10px] sm:text-xs text-[var(--text-main)] uppercase tracking-[0.1em] font-bold px-1 opacity-70">
-        <span>Type '!help' for protocols</span>
-        <span id="sound-status" class="cursor-pointer hover:underline" onclick="toggleSound()">AUDIO: ON</span>
-      </div>
-    </section>
-
-    <!-- Pagination decor (hidden on mobile) -->
-    <div class="pagination-decor hidden sm:flex">
-      <div class="dot"></div>
-      <div class="dot filled"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="tracking-num edge-rgb">0101</div>
-    </div>
-
-  </main>
-
-  <script>
-    // --- DATA LAYER ---
-    const USER_DATA = {
-      name: "Sajid (Alcor / Zep)",
-      details: "19 · he/him · Bangladesh (GMT+6) · islam · ENFJ (FeNiSeTi) · 9w1 953 so/sx · FLEV 2122 · sanguine-phlegmatic · EIE-Fe",
-      bio: `ZEP, ALCOR, SAJID.<br>Bangladeshi.<br>Gray-spec.<br>He/Him.<br>Islam.<br>19.<br><span class="text-xs text-[var(--text-muted)]">(As of uploading this post)</span>`,
-      interests: {
-        "series i enjoy": [
-          "1. SHIN MEGAMI TENSEI / PERSONA. (I used to edit persona videos)",
-          "2. ARKNIGHTS. (Love the International Typographic Style)",
-          "3. PROJECT MOON. (Last played: A YEAR AGO)",
-          "4. TYPE-MOON. (Cosmology is tuff. Mainly FGO)",
-          "5. HOYOVERSE / PGR. (ALSO LAST PLAYED A YEAR AGO)",
-          "6. TRIGUN. (Made me change my life. Kinda miss them to this day)"
-        ],
-        "on repeat": [
-          "1. Nujabes. (Includes: Marcus D, Cise Starr, Shing02)",
-          "2. Malcolm Todd, MarQ, Troy Javelona.",
-          "3. Tame Impala.", "4. Vansire.", "5. Gorillaz.", "6. Laufey.",
-          "7. Hotel Ugly.", "8. Mac DeMarco.", "9. J Dilla.", "10. MF DOOM.",
-          "11. Kanye West.", "12. Kendrick Lamar."
-        ],
-        "philosophies i like": [
-          "1. Absurdism.", "2. Gnosticism.", "3. Neo-Platonism.",
-          "4. Apophatic theology.", "5. Søren Kierkegaard's existentialism.",
-          "6. Lao Tzu's Taoism.", "7. Plato's Theory of Form.",
-          "8. Nietzsche's Übermensch.", "9. Carl Jung's Collective Unconscious."
-        ],
-        "design philosophy": [
-          "1. Swiss Style", "2. Bauhaus", "3. Modernism", "4. Graphic-core",
-          "5. UI-core / Cybercore", "6. Minimalism", "7. Brutalism",
-          "8. Neo-Noir", "9. Lo-Fi / Grunge", "0. Technical Illustration"
-        ]
-      },
-      links: [
-        { label: "@nahzd ; yt", url: "https://youtube.com/@NahZD" },
-        { label: "@SDEDIN ; rbx", url: "https://www.roblox.com/users/215212887/profile" },
-        { label: "@alcorzep ; steam", url: "https://steamcommunity.com/id/alcorzep" },
-        { label: "@alcor.zep ; dc,tt,ins", url: "#" }
-      ]
-    };
-
-    // --- STATE ---
-    const state = {
-      soundEnabled: true,
-      isTyping: false,
-      isBooting: true,
-    };
-
-    // --- DOM ELEMENTS ---
-    const els = {
-      output: document.getElementById('terminal-output'),
-      input: document.getElementById('command-input'),
-      boot: document.getElementById('boot-screen'),
-      bootLog: document.getElementById('boot-log'),
-      bootProgress: document.getElementById('boot-progress'),
-      inputContainer: document.getElementById('input-container'),
-      soundStatus: document.getElementById('sound-status')
-    };
-
-    // --- AUDIO ENGINE (clean, subtle) ---
-    let noiseSynth, bassSynth;
-    const initAudio = () => {
-      if (typeof Tone === 'undefined') return;
-      try {
-        noiseSynth = new Tone.NoiseSynth({
-          noise: { type: 'white' },
-          envelope: { attack: 0.001, decay: 0.06, sustain: 0, release: 0.01 },
-          volume: -22
-        }).toDestination();
-        
-        bassSynth = new Tone.MembraneSynth({
-          pitchDecay: 0.05,
-          octaves: 2,
-          oscillator: { type: 'sine' },
-          envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.1 },
-          volume: -18
-        }).toDestination();
-        
-        Tone.context.resume();
-      } catch (e) {
-        console.warn("Audio init failed:", e);
-      }
-    };
-
-    const playSound = (type = 'click') => {
-      if (!state.soundEnabled) return;
-      if (typeof Tone === 'undefined') return;
-      if (Tone.context.state !== 'running') Tone.context.resume().catch(e => null);
-      
-      const now = Tone.now();
-      try {
-        if (type === 'click') {
-          if (noiseSynth) noiseSynth.triggerAttackRelease("32n", now);
-        }
-        if (type === 'error') {
-          if (bassSynth) bassSynth.triggerAttackRelease("G2", "16n", now);
-          if (noiseSynth) noiseSynth.triggerAttackRelease("64n", now + 0.02);
-        }
-        if (type === 'success') {
-          if (bassSynth) bassSynth.triggerAttackRelease("E4", "16n", now);
-          if (noiseSynth) noiseSynth.triggerAttackRelease("64n", now + 0.05, 0.5);
-        }
-      } catch (e) { /* ignore */ }
-    };
-
-    window.toggleSound = () => {
-      state.soundEnabled = !state.soundEnabled;
-      els.soundStatus.textContent = state.soundEnabled ? 'AUDIO: ON' : 'AUDIO: OFF';
-      playSound('click');
-    };
-
-    // --- THEME TOGGLE ---
-    window.toggleTheme = () => {
-      document.body.classList.toggle('light-mode');
-      const icon = document.getElementById('theme-icon');
-      if (document.body.classList.contains('light-mode')) {
-        icon.setAttribute('data-lucide', 'sun');
-      } else {
-        icon.setAttribute('data-lucide', 'moon');
-      }
-      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-      playSound('click');
-    };
-
-    // --- UI HELPERS ---
-    const updateInputLockState = () => {
-      if (state.isTyping || state.isBooting) {
-        els.inputContainer.classList.add('input-locked');
-        els.input.setAttribute('disabled', 'disabled');
-        els.input.placeholder = state.isBooting ? '[SYSTEM BUSY]' : '[PROCESSING...]';
-        removeOutputBlinker();
-      } else {
-        els.inputContainer.classList.remove('input-locked');
-        els.input.removeAttribute('disabled');
-        els.input.placeholder = 'ENTER COMMAND...';
-        els.input.focus();
-        addOutputBlinker();
-      }
-    };
-
-    const addOutputBlinker = () => {
-      if (!document.getElementById('output-blinker')) {
-        const lastDiv = els.output.lastElementChild;
-        if (lastDiv) {
-          const blinker = document.createElement('span');
-          blinker.id = 'output-blinker';
-          blinker.className = 'cursor-blink bg-[var(--text-main)] inline-block w-2 h-4 sm:h-5 ml-1 align-middle';
-          lastDiv.appendChild(blinker);
-        }
-      }
-    };
-
-    const removeOutputBlinker = () => {
-      const blinker = document.getElementById('output-blinker');
-      if (blinker) blinker.remove();
-    };
-
-    const printPrompt = (cmd, type = 'user') => {
-      removeOutputBlinker();
-      const div = document.createElement('div');
-      div.className = "mb-1 font-bold opacity-70 animate-fadeIn flex gap-2 text-sm sm:text-base";
-      const prefix = type === 'user' ? 'C:\\>' : 'SYS>';
-      div.innerHTML = `<span class="${type === 'sys' ? 'edge-rgb' : ''}">${prefix}</span> <span>${cmd}</span>`;
-      els.output.appendChild(div);
-      els.output.scrollTop = els.output.scrollHeight;
-    };
-
-    const processOutput = async (html) => {
-      await new Promise(resolve => setTimeout(resolve, 600));
-      const div = document.createElement('div');
-      div.className = "mb-4 sm:mb-6 pb-2 sm:pb-3 animate-fadeIn border-b border-dashed border-[var(--accent-dim)] text-sm sm:text-base";
-      div.innerHTML = html;
-      els.output.appendChild(div);
-      els.output.scrollTop = els.output.scrollHeight;
-      playSound('success');
-    };
-
-    // --- COMMAND HANDLERS ---
-    const commands = {
-      '!help': () => `
-        <div class="white-block glitch-title text-lg sm:text-xl md:text-2xl mb-3 sm:mb-4 italic pr-4 tracking-tighter">PROTOCOLS</div>
-        <div class="grid gap-2 text-xs sm:text-sm md:text-base">
-          <div><span class="font-bold w-16 sm:w-20 md:w-24 inline-block">!bio</span> - INTRODUCTION</div>
-          <div><span class="font-bold w-16 sm:w-20 md:w-24 inline-block">!data</span> - INTERESTS & SERIES</div>
-          <div><span class="font-bold w-16 sm:w-20 md:w-24 inline-block">!comms</span> - SOCIALS</div>
-          <div><span class="font-bold w-16 sm:w-20 md:w-24 inline-block">!clear</span> - WIPE SCREEN</div>
-        </div>
-      `,
-      '!bio': () => `
-        <div class="white-block glitch-title text-xl sm:text-2xl md:text-3xl mb-3 sm:mb-4 italic pr-6 tracking-tighter">INTRODUCTION</div>
-        <div class="text-base sm:text-lg md:text-xl leading-relaxed mb-4">${USER_DATA.bio}</div>
-        <div class="flex flex-wrap gap-2 text-xs sm:text-sm md:text-base font-bold">
-          <span class="white-block">ENFJ · Fe Ni Se Ti</span>
-          <span class="white-block">SO·SX</span>
-          <span class="white-block">9w1 · 953</span>
-          <span class="white-block">FLEV · 2122</span>
-          <span class="white-block">Sanguine-Phlegmatic</span>
-        </div>
-      `,
-      '!data': () => {
-        let html = '';
-        for (const [category, items] of Object.entries(USER_DATA.interests)) {
-          html += `<div class="white-block glitch-title text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 mt-4 sm:mt-6 italic pr-4 tracking-tighter uppercase">${category}</div>`;
-          html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 sm:gap-y-2 mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">`;
-          items.forEach(item => html += `<div class="font-medium opacity-90 hover:opacity-100 transition-opacity pl-2 border-l-2 border-[var(--accent-dim)]">${item}</div>`);
-          html += `</div>`;
-        }
-        return html;
-      },
-      '!comms': () => {
-        let html = `<div class="white-block glitch-title text-2xl sm:text-3xl md:text-4xl mb-4 sm:mb-5 italic pr-6 sm:pr-8 tracking-tighter">SOCIALS</div>`;
-        html += `<div class="flex flex-col gap-2 font-bold text-lg sm:text-xl md:text-2xl">`;
-        USER_DATA.links.forEach(l => {
-          html += `<a href="${l.url}" target="_blank" rel="noopener noreferrer" class="hover-link w-fit">${l.label}</a>`;
-        });
-        html += `</div>`;
-        return html;
-      }
-    };
-
-    const handleCommand = async (raw) => {
-      if (state.isTyping || state.isBooting) {
-        if (raw.trim()) playSound('error');
-        return;
-      }
-      const input = raw.trim();
-      if (!input) return;
-      
-      const cmd = input.split(/\s+/)[0].toLowerCase();
-      printPrompt(input, 'user');
-      
-      state.isTyping = true;
-      updateInputLockState();
-
-      try {
-        if (cmd === '!clear') {
-          els.output.innerHTML = '';
-          playSound('success');
-        } else if (commands[cmd]) {
-          await processOutput(commands[cmd]());
-        } else {
-          playSound('error');
-          await processOutput(`
-            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <span class="white-block bg-[var(--error-color)] text-white text-xs sm:text-sm">ERROR: INVALID COMMAND</span>
-              <span class="text-xs opacity-50">Type !help for available protocols.</span>
+    <!-- BOOT SCREEN -->
+    <div id="boot-screen">
+        <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight text-xs sm:text-sm space-y-1"></div>
+        <div class="mt-4 sm:mt-6 flex flex-col gap-2">
+            <div class="w-full h-2 border border-white/30 bg-white/10">
+                <div id="boot-progress" class="h-full bg-white transition-all duration-300" style="width: 0%;"></div>
             </div>
-          `);
-        }
-      } finally {
-        state.isTyping = false;
-        updateInputLockState();
-      }
-    };
+            <div id="skip-instruction" class="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1 tracking-widest uppercase">
+                SYSTEM PROMPT: Click anywhere to bypass initialization.
+            </div>
+            <div class="mt-2 font-bold text-sm uppercase tracking-widest">
+                <span>INITIALIZING...</span><span class="cursor-blink">_</span>
+            </div>
+        </div>
+    </div>
 
-    // --- BOOT SEQUENCE ---
-    const runBootSequence = async () => {
-      updateInputLockState();
-      
-      const bootLines = [
-        "MEMORY CHECK...... OK",
-        "INITIALIZING VHS OVERLAY ENGINE...",
-        "LOADING CHROMATIC ABERRATION MODULE...",
-        "> ALCOR.SYS DETECTED",
-        "BLUE SCREEN PROTOCOL ACTIVE.",
-        "ESTABLISHING SECURE CONNECTION..."
-      ];
+    <!-- MAIN INTERFACE – fixed height to force internal scrolling -->
+    <main id="main-interface" class="max-w-4xl mx-auto w-full flex flex-col relative z-10 px-3 sm:px-6 md:px-8 py-3 sm:py-5"
+    style="height: 100dvh;">
 
-      for (let i = 0; i < bootLines.length; i++) {
-        const p = document.createElement('div');
-        p.innerHTML = bootLines[i];
-        p.style.opacity = '0.8';
-        els.bootLog.appendChild(p);
-        els.bootProgress.style.width = `${((i + 1) / bootLines.length) * 100}%`;
-        await new Promise(r => setTimeout(r, 250));
-      }
-      
-      await new Promise(r => setTimeout(r, 400));
-      finalizeBootAndGreet();
-    };
+        <!-- Header with CONTAINED RGB glow edge -->
+        <header class="header-edge-wrapper mb-3 sm:mb-5 pb-3 sm:pb-4 relative shrink-0">
+            <div class="flex justify-between items-start flex-wrap gap-2">
+                <div>
+                    <h1 class="glitch-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-none text-[var(--text-main)] tracking-tighter">
+                        POLARIS
+                    </h1>
+                    <div class="flex items-center gap-2 mt-1 sm:mt-2 text-[10px] sm:text-xs font-bold tracking-[0.12em] text-[var(--text-main)] uppercase opacity-80">
+                        <span class="w-1.5 h-1.5 bg-[var(--text-main)] rounded-full animate-pulse"></span>
+                        SYSTEM ROOT // GUIDANCE LOG V.2.0
+                    </div>
+                </div>
+                <button onclick="toggleTheme()" class="p-2 border-2 border-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-color)] transition-colors rounded-none shrink-0" aria-label="Toggle Theme">
+                    <i id="theme-icon" data-lucide="moon" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                </button>
+            </div>
+            <!-- The contained RGB glow line -->
+            <div class="rgb-edge-line"></div>
+        </header>
 
-    const finalizeBootAndGreet = async () => {
-      if (!state.isBooting) return;
-      state.isBooting = false;
-      
-      els.bootProgress.style.width = '100%';
-      
-      const greeting = `<span class="white-block glitch-title text-lg sm:text-xl md:text-2xl italic pr-4 tracking-tighter">ABOUT ME.</span><br><br><span class="opacity-80">polaris v2.0 initialized. type</span> <span class="font-bold border-b-2 border-[var(--text-main)]">!help</span> <span class="opacity-80">to begin.</span>`;
-      
-      await new Promise(r => setTimeout(r, 200));
-      printPrompt(greeting, 'sys');
-      playSound('success');
-      
-      els.boot.style.opacity = '0';
-      els.boot.style.pointerEvents = 'none';
-      
-      state.isTyping = false;
-      updateInputLockState();
-    };
+        <!-- DASHBOARD: Quick Links (3-column grid) -->
+        <section class="shrink-0 mb-3 sm:mb-4 p-2 sm:p-3 border border-[var(--accent-dim)] rounded-sm">
+            <div id="links-container" class="grid grid-cols-3 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                <a href="https://youtube.com/@NahZD" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">YOUTUBE <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">MEDIA</div>
+                </a>
+                <a href="https://tiktok.com/@alcor.zep" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">TIKTOK <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">MEDIA</div>
+                </a>
+                <a href="https://instagram.com/@alcor.zep" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">INSTAGRAM <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">SOCIAL</div>
+                </a>
+                <a href="https://discord.com/users/747419107040690196" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">DISCORD <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">SOCIAL</div>
+                </a>
+                <a href="https://discord.gg/W4mRvsaywB" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">SERVER <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">COMMUNITY</div>
+                </a>
+                <a href="https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">SPOTIFY <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">MEDIA</div>
+                </a>
+                <a href="https://steamcommunity.com/id/alcorzep" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">STEAM <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">GAMING</div>
+                </a>
+                <a href="https://www.roblox.com/users/215212887/profile" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">ROBLOX <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">GAMING</div>
+                </a>
+                <a href="https://github.com/alcorzep" target="_blank" rel="noopener" class="dash-card block p-1.5 sm:p-2 border border-[var(--glass-bg)] hover:shadow-lg transition-all group">
+                    <div class="font-bold text-[var(--accent-color)] text-xs sm:text-sm">GITHUB <span class="dash-arrow">→</span></div>
+                    <div class="text-[9px] sm:text-[10px] text-[var(--text-muted)]">CODE</div>
+                </a>
+            </div>
+        </section>
 
-    // --- EVENT LISTENERS ---
-    els.input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleCommand(els.input.value);
-        els.input.value = '';
-      } else if (e.key.length === 1 || e.key === 'Backspace') {
-        if (!state.isTyping && !state.isBooting) playSound('click');
-      }
-    });
+        <!-- Terminal Output (scrolls internally within fixed height) -->
+        <div id="terminal-output" class="flex-1 min-h-0 mb-2 sm:mb-3 p-2 sm:p-3 overflow-y-auto font-mono text-sm sm:text-base leading-relaxed space-y-1.5 sm:space-y-2 border-l-2 border-[var(--accent-dim)] bg-[rgba(0,0,0,0.04)]">
+            <!-- Dynamic content -->
+        </div>
 
-    els.boot.addEventListener('click', () => {
-      if (state.isBooting) finalizeBootAndGreet();
-    });
+        <!-- Command Input – always visible at bottom -->
+        <section class="shrink-0 mb-2">
+            <div id="input-container" class="flex items-center p-2 sm:p-3 border-2 border-[var(--text-main)] bg-[var(--glass-bg)] input-focus transition-colors">
+                <label for="command-input" id="prompt-label" class="text-sm sm:text-lg whitespace-nowrap pr-2 sm:pr-3 font-bold select-none text-[var(--text-main)]">
+                    C:\>
+                </label>
+                <input type="text" id="command-input" class="w-full bg-transparent outline-none border-none font-mono text-sm sm:text-lg text-[var(--text-main)] placeholder-[var(--text-muted)] uppercase tracking-wider py-0.5" placeholder="ENTER COMMAND..." autocomplete="off" autofocus>
+            </div>
+            <div class="flex justify-between mt-1.5 text-[9px] sm:text-[11px] text-[var(--text-main)] uppercase tracking-[0.08em] font-bold px-1 opacity-65">
+                <span>Type '!help' for protocols</span>
+                <span id="sound-status" class="cursor-pointer hover:underline" onclick="toggleSound()">AUDIO: ON</span>
+            </div>
+        </section>
 
-    // --- INIT ---
-    const init = () => {
-      initAudio();
-      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-      
-      setTimeout(runBootSequence, 800);
-      
-      document.addEventListener('click', (e) => {
-        if (!window.getSelection()?.toString() && !e.target.closest('a, button, input, #boot-screen')) {
-          if (!state.isBooting && !state.isTyping) els.input.focus();
-        }
-      });
+        <!-- Pagination decor (hidden on mobile) -->
+        <div class="pagination-decor hidden sm:flex">
+            <div class="dot"></div>
+            <div class="dot filled"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="tracking-num">1010</div>
+        </div>
 
-      // Decorative tracking number rotation (not on mobile anyway)
-      setInterval(() => {
-        const tracker = document.querySelector('.tracking-num');
-        if (tracker && window.innerWidth >= 640) {
-          const num = Math.floor(Math.random() * 9000) + 1000;
-          tracker.textContent = num;
-        }
-      }, 3000);
-    };
+    </main>
 
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+    <script>
+        // --- DATA LAYER (10 fixed) ---
+        const USER_DATA = {
+            name: "Sajid (Alcor / Zep)",
+            details: "19 · he/him · Bangladesh (GMT+6) · islam · ENFJ (FeNiSeTi) · 9w1 953 so/sx · FLEV 2122 · sanguine-phlegmatic · EIE-Fe",
+            bio: `ZEP, ALCOR, SAJID.<br>Bangladeshi.<br>Gray-spec.<br>He/Him.<br>Islam.<br>19.<br><span class="text-[10px] sm:text-xs opacity-50">(As of uploading this post)</span>`,
+            interests: {
+                "series i enjoy": [
+                    "1. SHIN MEGAMI TENSEI / PERSONA. (I used to edit persona videos)",
+                    "2. ARKNIGHTS. (Love the International Typographic Style)",
+                    "3. PROJECT MOON. (Last played: A YEAR AGO)",
+                    "4. TYPE-MOON. (Cosmology is tuff. Mainly FGO)",
+                    "5. HOYOVERSE / PGR. (ALSO LAST PLAYED A YEAR AGO)",
+                    "6. TRIGUN. (Made me change my life. Kinda miss them to this day)"
+                ],
+                "on repeat": [
+                    "1. Nujabes. (Includes: Marcus D, Cise Starr, Shing02)",
+                    "2. Malcolm Todd, MarQ, Troy Javelona.",
+                    "3. Tame Impala.",
+                    "4. Vansire.",
+                    "5. Gorillaz.",
+                    "6. Laufey.",
+                    "7. Hotel Ugly.",
+                    "8. Mac DeMarco.",
+                    "9. J Dilla.",
+                    "10. MF DOOM.",
+                    "11. Kanye West.",
+                    "12. Kendrick Lamar."
+                ],
+                "philosophies i like": [
+                    "1. Absurdism.",
+                    "2. Gnosticism.",
+                    "3. Neo-Platonism.",
+                    "4. Apophatic theology.",
+                    "5. Søren Kierkegaard's existentialism.",
+                    "6. Lao Tzu's Taoism.",
+                    "7. Plato's Theory of Form.",
+                    "8. Nietzsche's Übermensch.",
+                    "9. Carl Jung's Collective Unconscious."
+                ],
+                "design philosophy": [
+                    "1. Swiss Style",
+                    "2. Bauhaus",
+                    "3. Modernism",
+                    "4. Graphic-core",
+                    "5. UI-core / Cybercore",
+                    "6. Minimalism",
+                    "7. Brutalism",
+                    "8. Neo-Noir",
+                    "9. Lo-Fi / Grunge",
+                    "10. Technical Illustration"
+                ]
+            },
+            links: [
+                { label: "@nahzd ; yt", url: "https://youtube.com/@NahZD" },
+                { label: "@SDEDIN ; rbx", url: "https://www.roblox.com/users/215212887/profile" },
+                { label: "@alcorzep ; steam", url: "https://steamcommunity.com/id/alcorzep" },
+                { label: "@alcor.zep ; dc,tt,ins", url: "https://discord.com/users/747419107040690196" }
+            ]
+        };
+
+        // --- STATE ---
+        const state = {
+            soundEnabled: true,
+            isTyping: false,
+            isBooting: true,
+        };
+
+        // --- DOM ---
+        const els = {
+            output: document.getElementById('terminal-output'),
+            input: document.getElementById('command-input'),
+            boot: document.getElementById('boot-screen'),
+            bootLog: document.getElementById('boot-log'),
+            bootProgress: document.getElementById('boot-progress'),
+            inputContainer: document.getElementById('input-container'),
+            soundStatus: document.getElementById('sound-status')
+        };
+
+        // --- AUDIO ---
+        let noiseSynth, bassSynth;
+        const initAudio = () => {
+            if (typeof Tone === 'undefined') return;
+            try {
+                noiseSynth = new Tone.NoiseSynth({
+                    noise: { type: 'white' },
+                    envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.01 },
+                    volume: -24
+                }).toDestination();
+                bassSynth = new Tone.MembraneSynth({
+                    pitchDecay: 0.05,
+                    octaves: 2,
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.001, decay: 0.18, sustain: 0, release: 0.08 },
+                    volume: -20
+                }).toDestination();
+                Tone.context.resume();
+            } catch (e) { console.warn("Audio init failed:", e); }
+        };
+
+        const playSound = (type = 'click') => {
+            if (!state.soundEnabled || typeof Tone === 'undefined') return;
+            if (Tone.context.state !== 'running') Tone.context.resume().catch(() => {});
+            const now = Tone.now();
+            try {
+                if (type === 'click') noiseSynth?.triggerAttackRelease("32n", now);
+                if (type === 'error') {
+                    bassSynth?.triggerAttackRelease("G2", "16n", now);
+                    noiseSynth?.triggerAttackRelease("64n", now + 0.02);
+                }
+                if (type === 'success') {
+                    bassSynth?.triggerAttackRelease("E4", "16n", now);
+                    noiseSynth?.triggerAttackRelease("64n", now + 0.04, 0.4);
+                }
+            } catch (e) {}
+        };
+
+        window.toggleSound = () => {
+            state.soundEnabled = !state.soundEnabled;
+            els.soundStatus.textContent = state.soundEnabled ? 'AUDIO: ON' : 'AUDIO: OFF';
+            playSound('click');
+        };
+
+        // --- THEME ---
+        window.toggleTheme = () => {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            icon.setAttribute('data-lucide', document.body.classList.contains('light-mode') ? 'sun' : 'moon');
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+            playSound('click');
+        };
+
+        // --- UI HELPERS ---
+        const updateInputLockState = () => {
+            if (state.isTyping || state.isBooting) {
+                els.inputContainer.classList.add('input-locked');
+                els.input.setAttribute('disabled', 'disabled');
+                els.input.placeholder = state.isBooting ? '[SYSTEM BUSY]' : '[PROCESSING...]';
+                removeOutputBlinker();
+            } else {
+                els.inputContainer.classList.remove('input-locked');
+                els.input.removeAttribute('disabled');
+                els.input.placeholder = 'ENTER COMMAND...';
+                els.input.focus();
+                addOutputBlinker();
+            }
+        };
+
+        const addOutputBlinker = () => {
+            if (!document.getElementById('output-blinker')) {
+                const lastDiv = els.output.lastElementChild;
+                if (lastDiv) {
+                    const blinker = document.createElement('span');
+                    blinker.id = 'output-blinker';
+                    blinker.className = 'cursor-blink bg-[var(--text-main)] inline-block w-1.5 h-3.5 sm:h-4 ml-1 align-middle';
+                    lastDiv.appendChild(blinker);
+                }
+            }
+        };
+
+        const removeOutputBlinker = () => {
+            document.getElementById('output-blinker')?.remove();
+        };
+
+        const printPrompt = (cmd, type = 'user') => {
+            removeOutputBlinker();
+            const div = document.createElement('div');
+            div.className = "mb-1 font-bold opacity-65 animate-fadeIn flex gap-2 text-xs sm:text-sm";
+            const prefix = type === 'user' ? 'C:\\>' : 'SYS>';
+            div.innerHTML = `<span>${prefix}</span> <span>${cmd}</span>`;
+            els.output.appendChild(div);
+            els.output.scrollTop = els.output.scrollHeight;
+        };
+
+        const processOutput = async (html) => {
+            await new Promise(r => setTimeout(r, 500));
+            const div = document.createElement('div');
+            div.className = "mb-3 sm:mb-5 pb-2 sm:pb-3 animate-fadeIn border-b border-dashed border-[var(--accent-dim)] text-xs sm:text-sm md:text-base";
+            div.innerHTML = html;
+            els.output.appendChild(div);
+            els.output.scrollTop = els.output.scrollHeight;
+            playSound('success');
+        };
+
+        // --- COMMANDS ---
+        const commands = {
+            '!help': () => `
+                <div class="white-block glitch-title text-base sm:text-lg md:text-xl mb-2 sm:mb-3 italic pr-3 tracking-tighter">PROTOCOLS</div>
+                <div class="grid gap-1.5 text-[11px] sm:text-sm">
+                    <div><span class="font-bold w-14 sm:w-20 inline-block">!bio</span> - INTRODUCTION</div>
+                    <div><span class="font-bold w-14 sm:w-20 inline-block">!data</span> - INTERESTS & SERIES</div>
+                    <div><span class="font-bold w-14 sm:w-20 inline-block">!comms</span> - SOCIALS</div>
+                    <div><span class="font-bold w-14 sm:w-20 inline-block">!clear</span> - WIPE SCREEN</div>
+                </div>
+            `,
+            '!bio': () => `
+                <div class="white-block glitch-title text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 italic pr-5 tracking-tighter">INTRODUCTION</div>
+                <div class="text-sm sm:text-base md:text-lg leading-relaxed mb-3">${USER_DATA.bio}</div>
+                <div class="flex flex-wrap gap-1.5 text-[10px] sm:text-xs font-bold">
+                    <span class="white-block">ENFJ · Fe Ni Se Ti</span>
+                    <span class="white-block">SO·SX</span>
+                    <span class="white-block">9w1 · 953</span>
+                    <span class="white-block">FLEV · 2122</span>
+                    <span class="white-block">Sanguine-Phlegmatic</span>
+                </div>
+            `,
+            '!data': () => {
+                let html = '';
+                for (const [category, items] of Object.entries(USER_DATA.interests)) {
+                    html += `<div class="white-block glitch-title text-base sm:text-lg md:text-xl mb-2 mt-3 sm:mt-4 italic pr-3 tracking-tighter uppercase">${category}</div>`;
+                    html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-1 sm:gap-y-1.5 mt-1 text-[11px] sm:text-sm">`;
+                    items.forEach(item => html +=
+                        `<div class="font-medium opacity-85 hover:opacity-100 transition-opacity pl-2 border-l-2 border-[var(--accent-dim)]">${item}</div>`);
+                    html += `</div>`;
+                }
+                return html;
+            },
+            '!comms': () => {
+                let html =
+                    `<div class="white-block glitch-title text-xl sm:text-2xl md:text-3xl mb-3 sm:mb-4 italic pr-5 tracking-tighter">SOCIALS</div>`;
+                html += `<div class="flex flex-col gap-1.5 font-bold text-base sm:text-lg md:text-xl">`;
+                USER_DATA.links.forEach(l => {
+                    html +=
+                        `<a href="${l.url}" target="_blank" rel="noopener noreferrer" class="hover-link w-fit">${l.label}</a>`;
+                });
+                html += `</div>`;
+                return html;
+            }
+        };
+
+        const handleCommand = async (raw) => {
+            if (state.isTyping || state.isBooting) {
+                if (raw.trim()) playSound('error');
+                return;
+            }
+            const input = raw.trim();
+            if (!input) return;
+
+            const cmd = input.split(/\s+/)[0].toLowerCase();
+            printPrompt(input, 'user');
+
+            state.isTyping = true;
+            updateInputLockState();
+
+            try {
+                if (cmd === '!clear') {
+                    els.output.innerHTML = '';
+                    playSound('success');
+                } else if (commands[cmd]) {
+                    await processOutput(commands[cmd]());
+                } else {
+                    playSound('error');
+                    await processOutput(`
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="white-block bg-[var(--error-color)] text-white text-[10px] sm:text-xs">ERROR: INVALID COMMAND</span>
+                            <span class="text-[10px] sm:text-xs opacity-50">Type !help for available protocols.</span>
+                        </div>
+                    `);
+                }
+            } finally {
+                state.isTyping = false;
+                updateInputLockState();
+            }
+        };
+
+        // --- BOOT SEQUENCE ---
+        const runBootSequence = async () => {
+            updateInputLockState();
+            const bootLines = [
+                "MEMORY CHECK...... OK",
+                "INITIALIZING VHS OVERLAY ENGINE...",
+                "LOADING SOFT RGB GLOW MODULE...",
+                "> ALCOR.SYS DETECTED",
+                "BLUE SCREEN PROTOCOL ACTIVE.",
+                "ESTABLISHING SECURE CONNECTION..."
+            ];
+            for (let i = 0; i < bootLines.length; i++) {
+                const p = document.createElement('div');
+                p.innerHTML = bootLines[i];
+                p.style.opacity = '0.75';
+                els.bootLog.appendChild(p);
+                els.bootProgress.style.width = `${((i + 1) / bootLines.length) * 100}%`;
+                await new Promise(r => setTimeout(r, 220));
+            }
+            await new Promise(r => setTimeout(r, 350));
+            finalizeBootAndGreet();
+        };
+
+        const finalizeBootAndGreet = async () => {
+            if (!state.isBooting) return;
+            state.isBooting = false;
+            els.bootProgress.style.width = '100%';
+            const greeting =
+                `<span class="white-block glitch-title text-base sm:text-lg md:text-xl italic pr-3 tracking-tighter">ABOUT ME.</span><br><br><span class="opacity-75">polaris v2.0 initialized. type</span> <span class="font-bold border-b-2 border-[var(--text-main)]">!help</span> <span class="opacity-75">to begin.</span>`;
+            await new Promise(r => setTimeout(r, 180));
+            printPrompt(greeting, 'sys');
+            playSound('success');
+            els.boot.style.opacity = '0';
+            els.boot.style.pointerEvents = 'none';
+            state.isTyping = false;
+            updateInputLockState();
+        };
+
+        // --- EVENT LISTENERS ---
+        els.input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleCommand(els.input.value);
+                els.input.value = '';
+            } else if (e.key.length === 1 || e.key === 'Backspace') {
+                if (!state.isTyping && !state.isBooting) playSound('click');
+            }
+        });
+
+        els.boot.addEventListener('click', () => {
+            if (state.isBooting) finalizeBootAndGreet();
+        });
+
+        // --- INIT ---
+        const init = () => {
+            initAudio();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+            setTimeout(runBootSequence, 700);
+
+            document.addEventListener('click', (e) => {
+                if (!window.getSelection()?.toString() && !e.target.closest('a, button, input, #boot-screen')) {
+                    if (!state.isBooting && !state.isTyping) els.input.focus();
+                }
+            });
+
+            setInterval(() => {
+                const tracker = document.querySelector('.tracking-num');
+                if (tracker && window.innerWidth >= 640) {
+                    tracker.textContent = Math.floor(Math.random() * 9000) + 1000;
+                }
+            }, 3000);
+        };
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
