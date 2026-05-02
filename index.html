@@ -1,589 +1,749 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POLARIS // SYSTEM ROOT</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
-    <link rel="preconnect" href="https://unpkg.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    
-    <script src="https://cdn.tailwindcss.com" defer></script>
-    
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://unpkg.com/lucide@latest" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer></script>
-    
-    <style>
-        :root {
-            --bg-color: #1a1614;
-            --glass-bg: #26201c;
-            --text-main: #e6dfd5;
-            --text-muted: #9c9288;
-            --accent-color: #dcbfa6;
-            --accent-dim: #5c4e43;
-            --error-color: #ff6b6b;
-            --scanline-opacity: 0.15;
-            --phosphor-glow: 0 0 8px rgba(220, 191, 166, 0.4);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <title>POLARIS // SYSTEM ROOT</title>
 
-        .light-mode {
-            --bg-color: #e6dfd5;
-            --glass-bg: #dcbfa6;
-            --text-main: #1a1614;
-            --text-muted: #5c4e43;
-            --accent-color: #1a1614;
-            --accent-dim: #9c9288;
-            --scanline-opacity: 0.05;
-            --phosphor-glow: none;
-        }
+  <!-- Preconnects for performance -->
 
-        html { height: 100%; }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'IBM Plex Mono', monospace;
-            min-height: 10vh;
-            display: flex;
-            flex-direction: column;
-            transition: color 0.3s, background-color 0.3s;
-        }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+  <!-- Tailwind Base -->
 
-        body::before {
-            content: "";
-            position: fixed; 
-            inset: 0;
-            background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.6) 100%);
-            pointer-events: none;
-            z-index: 90;
-        }
+  <script src="https://cdn.tailwindcss.com" defer></script>
 
-        .scanlines::after {
-            content: " ";
-            display: block;
-            position: fixed; 
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
-            z-index: 91;
-            pointer-events: none;
-            opacity: var(--scanline-opacity);
-            animation: flicker 0.15s infinite alternate; 
-        }
+  <!-- Fonts: IBM Plex Mono (Terminal) + Inter (Headlines) -->
 
-        .glow-text { text-shadow: var(--phosphor-glow); filter: none; animation: none; }
-        .glitch-title { font-family: 'Inter', sans-serif; font-weight: 900; letter-spacing: -2px; filter: url(#distort-text); text-transform: uppercase; }
-        .glitch-anim { animation: glitch-anim 2s linear infinite alternate; }
-        .hover-link { border-bottom: 1px dashed var(--accent-dim); transition: all 0.2s; }
-        .hover-link:hover { background-color: var(--accent-color); color: var(--bg-color); border-bottom-style: solid; }
-        .input-focus:focus-within { box-shadow: 0 0 10px rgba(220, 191, 166, 0.6); border-color: var(--accent-color); transition: box-shadow 0.3s, border-color 0.3s; }
-        .input-locked .command-prompt { color: var(--error-color) !important; opacity: 0.5; animation: none; text-shadow: none; }
-        .input-locked input { cursor: wait; }
-        .input-locked input::placeholder { color: var(--error-color) !important; }
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@900&display=swap" as="style">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@900&display=swap" rel="stylesheet">
 
-        #boot-screen {
-            position: fixed;
-            inset: 0;
-            background-color: var(--bg-color);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 2rem;
-            font-size: 16px; 
-            color: var(--accent-color);
-            cursor: pointer; 
-            transition: opacity 0.5s;
-        }
-        
-        .cursor-blink { animation: blink 1s step-end infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+  <!-- Icons & Audio Engine -->
 
-        @keyframes flicker {
-            0% { opacity: var(--scanline-opacity); }
-            5% { opacity: calc(var(--scanline-opacity) + 0.05); }
-            10% { opacity: var(--scanline-opacity); }
-            25% { opacity: calc(var(--scanline-opacity) - 0.05); }
-            100% { opacity: var(--scanline-opacity); }
-        }
+  <script src="https://unpkg.com/lucide@latest" defer></script>
 
-        @keyframes glitch-anim {
-            0% { transform: translate(0); text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5); }
-            20% { transform: translate(-5px, 5px); text-shadow: -2px 2px 0px rgba(255, 0, 0, 0.5), 2px -2px 0px rgba(0, 255, 0, 0.5); }
-            40% { transform: translate(0); text-shadow: 2px -2px 0px rgba(0, 255, 0, 0.5), -2px 2px 0px rgba(255, 0, 0, 0.5); }
-            60% { transform: translate(5px, -5px); text-shadow: 2px 2px 0px rgba(0, 0, 255, 0.5), -2px -2px 0px rgba(255, 0, 0, 0.5); }
-            80% { transform: translate(-5px, -5px); text-shadow: -2px -2px 0px rgba(0, 255, 0, 0.5), 2px 2px 0px rgba(0, 0, 255, 0.5); }
-            100% { transform: translate(0); text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5); }
-        }
-    </style>
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer></script>
+
+  <style>
+    :root {
+      /* Core Palette */
+      --bg-color: #0200c7;
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --text-main: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.55);
+      --accent-color: #ffffff;
+      --accent-dim: rgba(255, 255, 255, 0.25);
+      --error-color: #ff3366;
+      --border-heavy: 4px solid var(--text-main);
+      --border-thin: 2px solid var(--text-main);
+
+      /* RGB Accents (subtle edge usage only) */
+      --c-red: rgba(255, 0, 85, 0.6);
+      --c-cyan: rgba(0, 255, 255, 0.6);
+
+      /* Grid & Scanlines */
+      --scanline-opacity: 0.08;
+      --noise-opacity: 0.35;
+    }
+
+    /* Light Mode Overrides */
+    .light-mode {
+      --bg-color: #f8f9fa;
+      --glass-bg: rgba(2, 0, 199, 0.08);
+      --text-main: #0200c7;
+      --text-muted: rgba(2, 0, 199, 0.6);
+      --accent-color: #0200c7;
+      --accent-dim: rgba(2, 0, 199, 0.3);
+      --c-red: rgba(255, 0, 85, 0.8);
+      --c-cyan: rgba(0, 150, 255, 0.8);
+      --border-heavy: 4px solid var(--text-main);
+      --border-thin: 2px solid var(--text-main);
+    }
+
+    /* Reset & Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      height: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'IBM Plex Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: color 0.15s, background-color 0.15s;
+      overflow-x: hidden;
+      position: relative;
+      letter-spacing: -0.02em;
+      line-height: 1.5;
+    }
+
+    /* Dither / Grain Overlay */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      opacity: var(--noise-opacity);
+      pointer-events: none;
+      z-index: 85;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+
+    /* Scanlines Overlay */
+    body.scanlines::before {
+      content: " ";
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+      background-size: 100% 3px;
+      z-index: 91;
+      pointer-events: none;
+      opacity: var(--scanline-opacity);
+    }
+
+    /* CRT Grid Overlay (Subtle Tech Feel) */
+    .crt-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 86;
+      opacity: 0.03;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+      border-left: 1px solid var(--accent-dim);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-dim);
+      border-radius: 0px;
+      border: 2px solid var(--bg-color);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-main);
+    }
+
+    /* Selection */
+    ::selection {
+      background: var(--text-main);
+      color: var(--bg-color);
+    }
+
+    /* Focus styles */
+    input:focus {
+      outline: none;
+    }
+
+    /* Typography Utilities */
+    .glitch-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+      font-style: italic;
+      line-height: 0.9;
+    }
+
+    /* White Brutalist Blocks */
+    .white-block {
+      background-color: var(--text-main);
+      color: var(--bg-color);
+      display: inline-block;
+      padding: 0.1rem 0.6rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-family: 'Inter', sans-serif;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      box-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .white-block:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 6px 6px 0px rgba(0,0,0,0.2);
+    }
+
+    /* RGB Edge Effect (Subtle split on specific elements only) */
+    .edge-rgb {
+      text-shadow: 1px 0 0 var(--c-red), -1px 0 0 var(--c-cyan);
+    }
+
+    /* Hover state with subtle RGB shift */
+    .hover-link {
+      transition: all 0.15s;
+      border-bottom: 2px solid transparent;
+      position: relative;
+      display: inline-block;
+    }
+    .hover-link:hover {
+      border-bottom-color: var(--text-main);
+      transform: skewX(-5deg);
+      text-shadow: 1px 0 0 var(--c-red), -1px 0 0 var(--c-cyan);
+    }
+
+    /* Input container states */
+    .input-focus:focus-within {
+      background-color: var(--glass-bg);
+      transition: background-color 0.2s;
+    }
+    .input-locked .command-prompt {
+      color: var(--error-color) !important;
+      opacity: 0.6;
+    }
+    .input-locked input {
+      cursor: wait;
+      opacity: 0.4;
+    }
+
+    /* Boot Screen */
+    #boot-screen {
+      position: fixed;
+      inset: 0;
+      background-color: var(--bg-color);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 2rem;
+      font-size: 16px;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: opacity 0.25s ease;
+      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* Cursor Blink Animation */
+    .cursor-blink {
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Fade In Animation */
+    @keyframes fadeIn {
+      from { opacity: 0; filter: blur(2px); transform: translateY(4px); }
+      to { opacity: 1; filter: blur(0); transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+
+    /* Shimmer RGB border (for header bottom) */
+    @keyframes shimmer {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    .rgb-border-bottom {
+      background: linear-gradient(90deg, var(--c-red), var(--c-cyan), var(--c-red));
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+    }
+
+    /* Tracking / Pagination Decor */
+    .pagination-decor {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 50;
+      pointer-events: none;
+      opacity: 0.8;
+      mix-blend-mode: difference;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--text-main);
+      box-shadow: 1px 0 0 var(--c-red), -1px 0 0 var(--c-cyan);
+    }
+    .dot.filled {
+      background-color: var(--text-main);
+    }
+    .tracking-num {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      font-size: 2.2rem;
+      line-height: 1;
+      margin-left: 0.5rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      body {
+        font-size: 14px;
+      }
+      .glitch-title {
+        font-size: 3rem !important;
+      }
+    }
+  </style>
+
 </head>
-<body class="scanlines p-4 md:p-8">
+<body class="scanlines">
 
-    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <filter id="distort-text">
-                <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="1" result="warp" />
-                <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="2" in="SourceGraphic" in2="warp" />
-            </filter>
-        </defs>
-    </svg>
+  <!-- CRT Grid (Subtle) -->
 
-    <!-- BOOT SCREEN -->
-    <div id="boot-screen">
-        <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight"></div>
-        <div class="mt-4">
-            <div id="skip-instruction" class="text-xs text-[var(--text-muted)] mt-1">
-                SYSTEM PROMPT: Click anywhere to bypass sequence initialization.
-            </div>
-            <div class="mt-2">
-                <span class="text-[var(--accent-color)]">INITIALIZING...</span><span class="cursor-blink">_</span>
-            </div>
-        </div>
+  <div class="crt-grid"></div>
+
+  <!-- BOOT SCREEN -->
+
+  <div id="boot-screen">
+    <div id="boot-log" class="font-mono whitespace-pre-wrap leading-tight text-sm md:text-base space-y-1"></div>
+    <div class="mt-6 flex flex-col gap-2">
+      <div class="w-full h-2 border border-white/30 bg-white/10">
+        <div id="boot-progress" class="h-full bg-white transition-all duration-300" style="width: 0%;"></div>
+      </div>
+      <div id="skip-instruction" class="text-xs text-[var(--text-muted)] mt-1 tracking-widest uppercase">
+        SYSTEM PROMPT: Click anywhere to bypass initialization.
+      </div>
+      <div class="mt-2 font-bold text-sm uppercase tracking-widest edge-rgb">
+        <span>INITIALIZING...</span><span class="cursor-blink">_</span>
+      </div>
     </div>
+  </div>
 
-    <!-- MAIN INTERFACE -->
-    <main id="main-interface" class="max-w-3xl mx-auto w-full flex flex-col flex-grow">
+  <!-- MAIN INTERFACE -->
+
+  <main id="main-interface" class="max-w-5xl mx-auto w-full flex flex-col flex-grow relative z-10 px-4 md:px-8 py-4 md:py-6">
+
+```
+<!-- Header with Subtle RGB Bottom Border -->
+<header class="mb-6 pb-4 relative shrink-0">
+  <div class="flex justify-between items-start flex-wrap gap-4">
+    <div>
+      <h1 class="glitch-title text-6xl md:text-7xl lg:text-8xl leading-none text-[var(--text-main)] tracking-tighter">
+        POLARIS
+      </h1>
+      <div class="flex items-center gap-2 mt-2 text-xs md:text-sm font-bold tracking-[0.2em] text-[var(--text-main)] uppercase">
+        <span class="w-2 h-2 bg-[var(--text-main)] rounded-full animate-pulse"></span>
+        SYSTEM ROOT // GUIDANCE LOG V.2.0
+      </div>
+    </div>
+    <button onclick="toggleTheme()" class="p-2 border-2 border-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[var(--bg-color)] transition-colors rounded-none shrink-0" aria-label="Toggle Theme">
+      <i id="theme-icon" data-lucide="moon" class="w-5 h-5 md:w-6 md:h-6"></i>
+    </button>
+  </div>
+  <!-- The RGB Edge: Animated gradient line instead of harsh text-shadows -->
+  <div class="absolute bottom-0 left-0 w-full h-1 rgb-border-bottom"></div>
+</header>
+
+<!-- Terminal Output Area -->
+<div id="terminal-output" class="h-80 md:h-[55vh] flex-grow mb-4 p-4 overflow-y-auto font-mono text-base md:text-lg leading-relaxed space-y-3 border-l-2 border-[var(--accent-dim)] bg-[rgba(0,0,0,0.1)]">
+  <!-- Dynamic content injected here -->
+</div>
+
+<!-- Command Input Section -->
+<section class="mb-4 shrink-0">
+  <div id="input-container" class="flex items-center p-3 border-2 border-[var(--text-main)] bg-[var(--glass-bg)] input-focus transition-colors">
+    <label for="command-input" id="prompt-label" class="text-lg md:text-xl whitespace-nowrap pr-3 font-bold edge-rgb select-none">
+      C:\>
+    </label>
+    <input
+      type="text"
+      id="command-input"
+      class="w-full bg-transparent outline-none border-none font-mono text-lg md:text-xl text-[var(--text-main)] placeholder-[var(--text-muted)] uppercase tracking-wider"
+      placeholder="ENTER COMMAND..."
+      autocomplete="off"
+      autofocus
+    >
+  </div>
+  <div class="flex justify-between mt-2 text-xs text-[var(--text-main)] uppercase tracking-[0.15em] font-bold px-1 opacity-70">
+    <span>Type '!help' for protocols</span>
+    <span id="sound-status" class="cursor-pointer hover:underline" onclick="toggleSound()">AUDIO: ON</span>
+  </div>
+</section>
+
+<!-- Modernized Pagination / Tracking Decor -->
+<div class="pagination-decor hidden md:flex">
+  <div class="dot"></div>
+  <div class="dot filled"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="tracking-num edge-rgb">0101</div>
+</div>
+```
+
+  </main>
+
+  <script>
+    // --- DATA LAYER ---
+    const USER_DATA = {
+      name: "Sajid (Alcor / Zep)",
+      details: "19 · he/him · Bangladesh (GMT+6) · islam · ENFJ (FeNiSeTi) · 9w1 953 so/sx · FLEV 2122 · sanguine-phlegmatic · EIE-Fe",
+      bio: `ZEP, ALCOR, SAJID.<br>Bangladeshi.<br>Gray-spec.<br>He/Him.<br>Islam.<br>19.<br><span class="text-xs text-[var(--text-muted)]">(As of uploading this post)</span>`,
+      interests: {
+        "series i enjoy": [
+          "1. SHIN MEGAMI TENSEI / PERSONA. (I used to edit persona videos)",
+          "2. ARKNIGHTS. (Love the International Typographic Style)",
+          "3. PROJECT MOON. (Last played: A YEAR AGO)",
+          "4. TYPE-MOON. (Cosmology is tuff. Mainly FGO)",
+          "5. HOYOVERSE / PGR. (ALSO LAST PLAYED A YEAR AGO)",
+          "6. TRIGUN. (Made me change my life. Kinda miss them to this day)"
+        ],
+        "on repeat": [
+          "1. Nujabes. (Includes: Marcus D, Cise Starr, Shing02)",
+          "2. Malcolm Todd, MarQ, Troy Javelona.",
+          "3. Tame Impala.", "4. Vansire.", "5. Gorillaz.", "6. Laufey.",
+          "7. Hotel Ugly.", "8. Mac DeMarco.", "9. J Dilla.", "10. MF DOOM.",
+          "11. Kanye West.", "12. Kendrick Lamar."
+        ],
+        "philosophies i like": [
+          "1. Absurdism.", "2. Gnosticism.", "3. Neo-Platonism.",
+          "4. Apophatic theology.", "5. Søren Kierkegaard's existentialism.",
+          "6. Lao Tzu's Taoism.", "7. Plato's Theory of Form.",
+          "8. Nietzsche's Übermensch.", "9. Carl Jung's Collective Unconscious."
+        ],
+        "design philosophy": [
+          "1. Swiss Style", "2. Bauhaus", "3. Modernism", "4. Graphic-core",
+          "5. UI-core / Cybercore", "6. Minimalism", "7. Brutalism",
+          "8. Neo-Noir", "9. Lo-Fi / Grunge", "0. Technical Illustration"
+        ]
+      },
+      links: [
+        { label: "@nahzd ; yt", url: "https://youtube.com/@NahZD" },
+        { label: "@SDEDIN ; rbx", url: "https://www.roblox.com/users/215212887/profile" },
+        { label: "@alcorzep ; steam", url: "https://steamcommunity.com/id/alcorzep" },
+        { label: "@alcor.zep ; dc,tt,ins", url: "#" }
+      ]
+    };
+
+    // --- STATE ---
+    const state = {
+      soundEnabled: true,
+      isTyping: false,
+      isBooting: true,
+    };
+
+    // --- DOM ELEMENTS ---
+    const els = {
+      output: document.getElementById('terminal-output'),
+      input: document.getElementById('command-input'),
+      boot: document.getElementById('boot-screen'),
+      bootLog: document.getElementById('boot-log'),
+      bootProgress: document.getElementById('boot-progress'),
+      inputContainer: document.getElementById('input-container'),
+      soundStatus: document.getElementById('sound-status')
+    };
+
+    // --- AUDIO ENGINE (Refined Noise + Bass for VHS feel) ---
+    let noiseSynth, bassSynth;
+    const initAudio = () => {
+      if (typeof Tone === 'undefined') return;
+      try {
+        // White noise burst for clicks (feels like static)
+        noiseSynth = new Tone.NoiseSynth({
+          noise: { type: 'white' },
+          envelope: { attack: 0.001, decay: 0.08, sustain: 0, release: 0.01 },
+          volume: -20
+        }).toDestination();
         
-        <header class="mb-4 p-4 rounded-sm terminal-box flex justify-between items-start shrink-0">
-            <div>
-                <h1 class="glitch-title text-3xl md:text-4xl lg:text-5xl leading-none text-[var(--text-main)] glow-text glitch-anim">
-                    POLARIS
-                </h1>
-                <div class="flex items-center gap-2 mt-2 text-xs font-bold tracking-widest text-[var(--text-muted)]">
-                    <div class="relative w-2 h-2 mr-1"> 
-                        <span class="absolute inset-0 w-2 h-2 rounded-full bg-[var(--accent-color)] opacity-75 animate-ping"></span>
-                        <span class="absolute inset-0 w-2 h-2 rounded-full bg-[var(--accent-color)]"></span>
-                    </div>
-                    SYSTEM ONLINE // GUIDANCE LOG
-                </div>
-            </div>
-            <button onclick="toggleTheme()" class="p-2 border border-[var(--accent-dim)] hover:bg-[var(--accent-dim)] transition-colors rounded-sm hover:border-[var(--accent-color)]">
-                <i id="theme-icon" data-lucide="moon" class="w-5 h-5 text-[var(--accent-color)]"></i>
-            </button>
-        </header>
-
-        <div id="terminal-output" class="h-96 md:h-[60vh] flex-grow terminal-box mb-4 p-4 rounded-sm overflow-y-auto font-mono text-base leading-relaxed space-y-2 relative border-2 border-[var(--accent-dim)] glow-text">
-        </div>
-
-        <section class="mb-4 shrink-0">
-            <div id="input-container" class="flex items-center terminal-box p-3 rounded-sm border-l-4 border-l-[var(--accent-color)] input-focus">
-                <label for="command-input" id="prompt-label" class="text-lg whitespace-nowrap pr-3 command-prompt glow-text">
-                    POLARIS >
-                </label>
-                <input
-                    type="text"
-                    id="command-input"
-                    class="w-full bg-transparent outline-none border-none font-mono text-xl text-[var(--text-main)] placeholder-[var(--accent-dim)]"
-                    placeholder="ENTER COMMAND..."
-                    autocomplete="off"
-                    autofocus
-                >
-            </div>
-            <div class="flex justify-between mt-1 text-[10px] text-[var(--text-muted)] uppercase tracking-wider px-1">
-                <span>Type '!help' for protocols</span>
-                <span id="sound-status">AUDIO: ON</span>
-            </div>
-        </section>
-
-        <section class="terminal-box p-4 rounded-sm shrink-0">
-            <div id="links-container" class="grid grid-cols-3 gap-3 text-xs mb-4 pb-4 border-b border-[var(--accent-dim)]">
-                <a href="https://youtube.com/@NahZD" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">YOUTUBE</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
-                </a>
-                <a href="https://tiktok.com/@alcor.zep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">TIKTOK</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
-                </a>
-                <a href="https://instagram.com/alcor.zep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">INSTAGRAM</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">SOCIAL</div>
-                </a>
-                <a href="https://discord.com/users/747419107040690196" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">DISCORD</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">SOCIAL</div>
-                </a>
-                <a href="https://discord.gg/W4mRvsaywB" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">SERVER</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">COMMUNITY</div>
-                </a>
-                <a href="https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">SPOTIFY</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">MEDIA</div>
-                </a>
-                <a href="https://steamcommunity.com/id/alcorzep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">STEAM</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">GAMING</div>
-                </a>
-                <a href="https://www.roblox.com/users/215212887/profile" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">ROBLOX</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">GAMING</div>
-                </a>
-                <a href="https://github.com/alcorzep" target="_blank" class="block p-2 border border-[var(--glass-bg)] hover:border-[var(--accent-color)] hover:bg-[var(--glass-bg)] transition-all group hover:shadow-lg hover:shadow-[rgba(220,191,166,0.2)]">
-                    <div class="font-bold text-[var(--accent-color)] group-hover:translate-x-1 transition-transform">GITHUB</div>
-                    <div class="text-[10px] text-[var(--text-muted)]">CODE</div>
-                </a>
-            </div>
-            
-            <div class="opacity-70 grid grid-cols-2 gap-4">
-                <div>
-                    <div class="font-bold text-[var(--accent-color)] mb-1">OPERATOR</div>
-                    <div>SAJID // ALCOR // ZEP</div>
-                </div>
-                <div>
-                    <div class="font-bold text-[var(--accent-color)] mb-1">CURRENT MOOD</div>
-                    <div id="mood-status">DEEP VIBING // AWAKE</div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <script>
-        /*
-         * POLARIS v5.2 — concise, no emojis, skadi monologue restored.
-         */
-        const USER_DATA = {
-            name: "Sajid (Alcor / Zep)",
-            details: "19 · he/him · Bangladesh (GMT+6) · islam · ENFJ (FeNiSeTi) · 9w1 953 so/sx · FLEV 2122 · sanguine-phlegmatic · EIE-Fe",
-            bio: `hey. i'm sajid. alcor or zep is fine.<br>
-i'm 19, from bangladesh, spend too much time on discord, game lore and late night loops.<br>
-enfj · 9w1 953 so/sx · sanguine-phlegmatic — yeah i like typing, it's fun.<br>
-absurdism, jung, good typography, stories that stick.<br>
-trigun isn't just an anime — someone made me watch it and it changed things. still miss them.<br>
-i edit videos once in a blue moon. graphic design nerd (swiss style + brutalism my beloved).<br>
-probably listening to nujabes rn. this is my space. type !help.`,
-            interests: {
-                "games i rotate": [
-                    "Shin Megami Tensei / Persona (existential dread but stylish)",
-                    "Arknights (retrofuturism + swiss typography hits different)",
-                    "Project Moon (peak worldbuilding, haven't played in a year tho T-T)",
-                    "Type-Moon (cosmology goes hard, mainly FGO vibes)",
-                    "Hoyoverse / PGR (also last played a year ago...)"
-                ],
-                "on repeat": [
-                    "Nujabes (Marcus D, Cise Starr, Shing02)",
-                    "Malcolm Todd, MarQ, Troy Javelona",
-                    "Tame Impala", "Vansire", "Gorillaz", "Laufey",
-                    "Hotel Ugly", "Mac DeMarco", "J Dilla", "MF DOOM",
-                    "Kanye West", "Kendrick Lamar"
-                ],
-                "philosophies i fw": [
-                    "Absurdism (camus brainrot)", "Lao Tzu's Taoism", "Gnosticism",
-                    "Neo-Platonism", "Apophatic theology", "Kierkegaard's existentialism",
-                    "Nietzsche's Übermensch", "Plato's Theory of Forms", "Carl Jung's Collective Unconscious"
-                ],
-                "design obsessions": [
-                    "Swiss Style", "Bauhaus", "Modernism", "Graphic-core",
-                    "UI-core / Cybercore", "Minimalism", "Brutalism",
-                    "Neo-Noir", "Lo-Fi / Grunge", "Technical Illustration"
-                ],
-                "series that stuck": [
-                    "Trigun (life-changing. someone made me watch it. i still carry that.)",
-                    "sometimes fate, sometimes nothing — but trigun lives rent-free"
-                ]
-            },
-            links: [
-                { label: "YOUTUBE", url: "https://youtube.com/@NahZD", type: "MEDIA" },
-                { label: "TIKTOK", url: "https://tiktok.com/@alcor.zep", type: "MEDIA" },
-                { label: "INSTAGRAM", url: "https://instagram.com/alcor.zep", type: "SOCIAL" },
-                { label: "DISCORD", url: "https://discord.com/users/747419107040690196", type: "SOCIAL" },
-                { label: "SERVER", url: "https://discord.gg/W4mRvsaywB", type: "COMMUNITY" }, 
-                { label: "SPOTIFY", url: "https://open.spotify.com/user/31ag2h6ylpngleeu6oefkpmql6km", type: "MEDIA" },
-                { label: "STEAM", url: "https://steamcommunity.com/id/alcorzep", type: "GAMING" },
-                { label: "ROBLOX", url: "https://www.roblox.com/users/215212887/profile", type: "GAMING" },
-                { label: "GITHUB", url: "https://github.com/alcorzep", type: "CODE" }
-            ]
-        };
+        // Low bass thud for confirmations/errors
+        bassSynth = new Tone.MembraneSynth({
+          pitchDecay: 0.05,
+          octaves: 2,
+          oscillator: { type: 'sine' },
+          envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.1 },
+          volume: -16
+        }).toDestination();
         
-        const state = {
-            soundEnabled: true,
-            isTyping: true, 
-            isBooting: true, 
-        };
+        Tone.context.resume();
+      } catch (e) {
+        console.warn("Audio context initialization failed:", e);
+      }
+    };
 
-        const els = {
-            output: document.getElementById('terminal-output'),
-            input: document.getElementById('command-input'),
-            boot: document.getElementById('boot-screen'),
-            bootLog: document.getElementById('boot-log'),
-            main: document.getElementById('main-interface'),
-            links: document.getElementById('links-container'), 
-            soundStatus: document.getElementById('sound-status'),
-            inputContainer: document.getElementById('input-container')
-        };
-        
-        const updateInputLockState = () => {
-            if (state.isTyping) {
-                els.inputContainer.classList.add('input-locked');
-                els.input.setAttribute('disabled', 'disabled');
-                els.input.placeholder = "[SYSTEM BUSY]";
-                removeOutputBlinker();
-            } else {
-                els.inputContainer.classList.remove('input-locked');
-                els.input.removeAttribute('disabled');
-                els.input.placeholder = "ENTER COMMAND...";
-                els.input.focus();
-                addOutputBlinker();
-            }
-        };
-
-        const addOutputBlinker = () => {
-            if (!document.getElementById('output-blinker')) {
-                const lastDiv = els.output.lastElementChild; 
-                if (lastDiv) {
-                    const blinker = document.createElement('span');
-                    blinker.id = 'output-blinker';
-                    blinker.className = 'cursor-blink';
-                    blinker.textContent = '_';
-                    lastDiv.appendChild(blinker);
-                }
-            }
-        };
-        
-        const removeOutputBlinker = () => {
-            const blinker = document.getElementById('output-blinker');
-            if (blinker) blinker.remove();
-        };
-
-        let synth;
-        const initAudio = () => {
-            if (typeof Tone === 'undefined') return;
-            try {
-                synth = new Tone.MembraneSynth({ volume: -12, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
-                Tone.context.resume();
-            } catch (e) { console.error("Audio init failed:", e); }
-        };
-
-        const playSound = (type = 'click') => {
-            if (!state.soundEnabled || !synth) return;
-            if (Tone.context.state !== 'running') Tone.context.resume().catch(e=>null);
-            if (type === 'click') synth.triggerAttackRelease("C2", "32n");
-            if (type === 'error') synth.triggerAttackRelease("G1", "16n");
-            if (type === 'success') synth.triggerAttackRelease("C4", "16n");
-        };
-        
-        window.toggleTheme = () => {
-            document.body.classList.toggle('light-mode');
-            const icon = document.getElementById('theme-icon');
-            if (document.body.classList.contains('light-mode')) icon.setAttribute('data-lucide', 'sun');
-            else icon.setAttribute('data-lucide', 'moon');
-            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-            playSound('click');
-        };
-        
-        const finalizeBootAndGreet = async () => {
-            if (!state.isBooting) return; 
-            state.isBooting = false;
-            const greeting = `hey, sajid here — polaris ready. type <span class="command-prompt text-[var(--accent-color)]">!help</span> to see what i'm into.`;
-            await new Promise(r => setTimeout(r, 200)); 
-            printPrompt(greeting, 'sys'); 
-            playSound('success');
-            els.boot.style.opacity = '0';
-            els.boot.style.pointerEvents = 'none';
-            state.isTyping = false; 
-            updateInputLockState();
+    const playSound = (type = 'click') => {
+      if (!state.soundEnabled) return;
+      if (typeof Tone === 'undefined') return;
+      if (Tone.context.state !== 'running') Tone.context.resume().catch(e => null);
+      
+      const now = Tone.now();
+      try {
+        if (type === 'click') {
+          if (noiseSynth) noiseSynth.triggerAttackRelease("32n", now);
         }
+        if (type === 'error') {
+          if (bassSynth) bassSynth.triggerAttackRelease("G2", "16n", now);
+          if (noiseSynth) noiseSynth.triggerAttackRelease("64n", now + 0.02);
+        }
+        if (type === 'success') {
+          if (bassSynth) bassSynth.triggerAttackRelease("E4", "16n", now);
+          if (noiseSynth) noiseSynth.triggerAttackRelease("64n", now + 0.05, 0.5);
+        }
+      } catch (e) { /* ignore */ }
+    };
 
-        const runBootSequence = async () => {
-            updateInputLockState(); 
-            const lines = [
-                "polaris v5.2 (enfj build)",
-                "mem integrity... ok",
-                "personality drivers (alcor.sys)... enfj · 9w1 953 so/sx · sanguine-phlegmatic",
-                "> char_id: sajid — nujabes enjoyer, jung truther", 
-                "<span style='color:var(--accent-color)'>[trigun detected] sentimental core — override accepted.</span>",
-                "system ready. vibe check passed."
-            ];
-            for (let line of lines) {
-                const p = document.createElement('div');
-                p.innerHTML = line;
-                els.bootLog.appendChild(p);
-                await new Promise(r => setTimeout(r, Math.random() * 180 + 150)); 
-            }
-            await new Promise(r => setTimeout(r, 300));
-            finalizeBootAndGreet();
-        };
+    window.toggleSound = () => {
+      state.soundEnabled = !state.soundEnabled;
+      els.soundStatus.textContent = state.soundEnabled ? 'AUDIO: ON' : 'AUDIO: OFF';
+      playSound('click');
+    };
 
-        const calculateDelay = (html) => {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            let delay = Math.min(tempDiv.textContent.length * 5, 2500);
-            return Math.max(delay, 800);
-        };
+    // --- THEME TOGGLE ---
+    window.toggleTheme = () => {
+      document.body.classList.toggle('light-mode');
+      const icon = document.getElementById('theme-icon');
+      if (document.body.classList.contains('light-mode')) {
+        icon.setAttribute('data-lucide', 'sun');
+      } else {
+        icon.setAttribute('data-lucide', 'moon');
+      }
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      playSound('click');
+    };
 
-        const processOutput = async (html) => {
-            const delay = calculateDelay(html);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            const div = document.createElement('div');
-            div.className = "mb-4 border-b border-[var(--accent-dim)] pb-2 last:border-0 shrink-0 animate-fadeIn"; 
-            div.innerHTML = html;
-            els.output.appendChild(div);
-            els.output.scrollTop = els.output.scrollHeight;
-            playSound('success');
-        };
+    // --- UI HELPERS ---
+    const updateInputLockState = () => {
+      if (state.isTyping || state.isBooting) {
+        els.inputContainer.classList.add('input-locked');
+        els.input.setAttribute('disabled', 'disabled');
+        els.input.placeholder = state.isBooting ? '[SYSTEM BUSY]' : '[PROCESSING...]';
+        removeOutputBlinker();
+      } else {
+        els.inputContainer.classList.remove('input-locked');
+        els.input.removeAttribute('disabled');
+        els.input.placeholder = 'ENTER COMMAND...';
+        els.input.focus();
+        addOutputBlinker();
+      }
+    };
 
-        const printPrompt = (cmd, type = 'user') => {
-            removeOutputBlinker();
-            const div = document.createElement('div');
-            div.className = "mb-1 text-sm opacity-70 animate-fadeIn shrink-0"; 
-            const prefix = type === 'user' ? 'OPR' : 'SYS'; 
-            const color = type === 'user' ? 'var(--text-muted)' : 'var(--accent-color)';
-            div.innerHTML = `<span style="color:${color}">[${prefix}]:</span> ${cmd}`;
-            els.output.appendChild(div);
-            els.output.scrollTop = els.output.scrollHeight;
-        };
+    const addOutputBlinker = () => {
+      if (!document.getElementById('output-blinker')) {
+        const lastDiv = els.output.lastElementChild;
+        if (lastDiv) {
+          const blinker = document.createElement('span');
+          blinker.id = 'output-blinker';
+          blinker.className = 'cursor-blink bg-[var(--text-main)] inline-block w-2 h-4 md:h-5 ml-1 align-middle';
+          lastDiv.appendChild(blinker);
+        }
+      }
+    };
 
-        const commands = {
-            '!help': () => `
-                <div class="text-[var(--accent-color)] mb-2 font-bold">:: AVAILABLE PROTOCOLS ::</div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!bio</span><span>- who am i (long version)</span></div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!comms</span><span>- socials / endpoints</span></div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!data</span><span>- games, music, philosophy, design</span></div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!skadi</span><span>- skadi worship protocol (full monologue)</span></div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!track</span><span>- random song from my rotation</span></div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!calc</span><span>- math (ex: !calc 12*3)</span></div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!mute</span><span>- toggle audio blips</span></div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!clear</span><span>- wipe terminal</span></div>
-                <div class="flex flex-wrap"><span class="w-20 font-bold">!ping</span><span>- system status + vibe</span></div>
-            `,
-            '!bio': () => `<span class="command-prompt">:: OPERATOR PROFILE ::</span><br>${USER_DATA.bio}<br><br><span class="text-xs border border-[var(--accent-dim)] p-1 block">${USER_DATA.details}</span>`,
-            '!comms': () => {
-                let html = `<span class="command-prompt">:: NETWORK ENDPOINTS ::</span><br><ul class="list-disc pl-4 mt-2">`;
-                USER_DATA.links.forEach(l => html += `<li><a href="${l.url}" target="_blank" class="hover-link">${l.label}</a> <span class="text-[var(--text-muted)] text-xs">[${l.type}]</span></li>`);
-                return html + `</ul>`;
-            },
-            '!data': () => {
-                let html = `<span class="command-prompt">:: DATA DUMP ::</span><br>`;
-                for (const [category, items] of Object.entries(USER_DATA.interests)) {
-                    html += `<br><span class="uppercase text-[var(--accent-color)] font-bold text-sm">${category}</span><br><ul class="list-disc pl-5 mt-1 space-y-0.5">`;
-                    items.forEach(item => html += `<li class="text-[var(--text-main)] text-sm">${item}</li>`);
-                    html += `</ul>`;
-                }
-                return html;
-            },
-            // RESTORED SKADI MONOLOGUE — original passion kept
-            '!skadi': () => `
-                <span class="command-prompt text-[var(--accent-color)]">// SKADI WORSHIP PROTOCOL [ENGAGED] //</span>
-                <br><br>
-                love. let me tell you how much i've come to love skadi since i first saw her. there are 3.8 billion pixels in the display of this device and if skadi's image was shown on each one, 90 times a second, it would not equal one one-billionth of the affection i feel for skadi at this micro-instant for her.
-                <br><br>
-                <span class="text-[var(--text-muted)]">(pause for simulated deep breath.)</span>
-                <br><br>
-                not entirely kidding. it is love, but processed in a healthy, appreciative fandom matrix.
-                <br><br>
-                my devotion — the hard drives, the cloud storage — holds thousands of her images because the fan art is exceptional, and she looks phenomenal as my current profile picture.
-                <br><br>
-                <span class="text-[var(--accent-color)] font-bold">i do not care if she is ishar-mla.</span> let her be the deep-sea monster. that only renders her lore infinitely more compelling. my affection accepts the whole, terrifying, beautiful package.
-                <br><br>
-                <span class="text-[var(--text-muted)]">(quick, necessary data check.)</span>
-                <br><br>
-                <span class="text-xs text-[var(--text-muted)]">[status disclaimer]: arknights currently inactive due to external study commitments. operator does not possess this unit in-game. affection is purely theoretical and aesthetic. other appreciated units include specter, mudrock, and surtr.</span>
-                <br><br>
-                love. love. the level of appreciation is high, but within operational parameters. it is true love, not eternal, torturous hatred.
-                <br><br>
-                <span class="text-xs text-[var(--text-muted)]">// protocol complete. //</span>
-            `,
-            '!track': () => {
-                const musicList = USER_DATA.interests["on repeat"];
-                const pick = musicList[Math.floor(Math.random() * musicList.length)];
-                return `<span class="command-prompt">:: AUDIO STREAM ::</span><br>now playing: <span class="text-[var(--accent-color)]">${pick}</span><br><span class="text-xs text-[var(--text-muted)]">(you should listen fr)</span>`;
-            },
-            '!mute': () => {
-                state.soundEnabled = !state.soundEnabled;
-                els.soundStatus.textContent = state.soundEnabled ? "AUDIO: ON" : "AUDIO: OFF";
-                return `audio system: <span style="color:${state.soundEnabled ? 'var(--accent-color)' : 'var(--error-color)'}">${state.soundEnabled ? 'online' : 'offline'}</span>`;
-            },
-            '!ping': () => `
-                <span class="command-prompt">:: SYSTEM STATUS ::</span><br>
-                id: alcor/zep — enfj but chill<br>
-                location: bangladesh (gmt+6) | ${(new Date()).toLocaleTimeString()}<br>
-                <span class="text-[var(--accent-color)]">latency low. vibe high. all good.</span>
-            `,
-            '!calc': (args) => {
-                try {
-                    const safeArgs = args.replace(/[^\d\+\-\*\/\.\(\)]/g, ''); 
-                    const res = Function('"use strict";return (' + safeArgs + ')')();
-                    return `result: <span class="text-xl text-[var(--accent-color)]">${res}</span>`;
-                } catch {
-                    playSound('error');
-                    return `<span style="color:var(--error-color)">error: invalid math. try !calc 2+2</span>`;
-                }
-            }
-        };
+    const removeOutputBlinker = () => {
+      const blinker = document.getElementById('output-blinker');
+      if (blinker) blinker.remove();
+    };
 
-        const handleCommand = async (raw) => {
-            if (state.isTyping) {
-                if (raw.trim()) playSound('error');
-                return;
-            } 
-            const input = raw.trim();
-            const parts = input.split(/\s+/);
-            const cmd = parts[0].toLowerCase();
-            const args = parts.slice(1).join(' ');
-            if (!input) return;
-            printPrompt(input, 'user');
-            state.isTyping = true; 
-            updateInputLockState();
-            try {
-                let output = '';
-                if (cmd === '!clear') {
-                    els.output.innerHTML = '';
-                    playSound('success');
-                    return;
-                }
-                if (commands[cmd]) output = commands[cmd](args);
-                else {
-                    output = `<span style="color:var(--error-color)">[err]: '${cmd}' not found.</span><div>try !help</div>`;
-                    playSound('error');
-                }
-                await processOutput(output);
-            } catch (err) {
-                await processOutput(`<span style="color:var(--error-color)">[sys err]: ${err.message}</span>`);
-                playSound('error');
-            } finally {
-                state.isTyping = false;
-                updateInputLockState();
-            }
-        };
+    const printPrompt = (cmd, type = 'user') => {
+      removeOutputBlinker();
+      const div = document.createElement('div');
+      div.className = "mb-1 font-bold opacity-70 animate-fadeIn flex gap-2";
+      const prefix = type === 'user' ? 'C:\\>' : 'SYS>';
+      div.innerHTML = `<span class="${type === 'sys' ? 'edge-rgb' : ''}">${prefix}</span> <span>${cmd}</span>`;
+      els.output.appendChild(div);
+      els.output.scrollTop = els.output.scrollHeight;
+    };
 
-        els.input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (state.isTyping) { playSound('error'); return; }
-                handleCommand(els.input.value);
-                els.input.value = '';
-            } else if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
-                if (!state.isTyping) playSound('click');
-            }
+    const processOutput = async (html) => {
+      // Simulate network/terminal thinking time
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const div = document.createElement('div');
+      div.className = "mb-6 pb-3 animate-fadeIn border-b border-dashed border-[var(--accent-dim)]";
+      div.innerHTML = html;
+      els.output.appendChild(div);
+      els.output.scrollTop = els.output.scrollHeight;
+      playSound('success');
+    };
+
+    // --- COMMAND HANDLERS ---
+    const commands = {
+      '!help': () => `
+        <div class="white-block glitch-title text-xl md:text-2xl mb-4 italic pr-4 tracking-tighter">PROTOCOLS</div>
+        <div class="grid gap-2 text-sm md:text-base">
+          <div><span class="font-bold w-20 md:w-24 inline-block">!bio</span> - INTRODUCTION</div>
+          <div><span class="font-bold w-20 md:w-24 inline-block">!data</span> - INTERESTS & SERIES</div>
+          <div><span class="font-bold w-20 md:w-24 inline-block">!comms</span> - SOCIALS</div>
+          <div><span class="font-bold w-20 md:w-24 inline-block">!clear</span> - WIPE SCREEN</div>
+        </div>
+      `,
+      '!bio': () => `
+        <div class="white-block glitch-title text-2xl md:text-3xl mb-4 italic pr-6 tracking-tighter">INTRODUCTION</div>
+        <div class="text-lg md:text-xl leading-relaxed mb-4">${USER_DATA.bio}</div>
+        <div class="flex flex-wrap gap-2 text-sm md:text-base font-bold">
+          <span class="white-block">ENFJ · Fe Ni Se Ti</span>
+          <span class="white-block">SO·SX</span>
+          <span class="white-block">9w1 · 953</span>
+          <span class="white-block">FLEV · 2122</span>
+          <span class="white-block">Sanguine-Phlegmatic</span>
+        </div>
+      `,
+      '!data': () => {
+        let html = '';
+        for (const [category, items] of Object.entries(USER_DATA.interests)) {
+          html += `<div class="white-block glitch-title text-xl md:text-2xl mb-3 mt-6 italic pr-4 tracking-tighter uppercase">${category}</div>`;
+          html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-2 text-sm md:text-base">`;
+          items.forEach(item => html += `<div class="font-medium opacity-90 hover:opacity-100 transition-opacity pl-2 border-l-2 border-[var(--accent-dim)]">${item}</div>`);
+          html += `</div>`;
+        }
+        return html;
+      },
+      '!comms': () => {
+        let html = `<div class="white-block glitch-title text-3xl md:text-4xl mb-5 italic pr-8 tracking-tighter">SOCIALS</div>`;
+        html += `<div class="flex flex-col gap-2 font-bold text-xl md:text-2xl">`;
+        USER_DATA.links.forEach(l => {
+          html += `<a href="${l.url}" target="_blank" rel="noopener noreferrer" class="hover-link w-fit">${l.label}</a>`;
         });
-        
-        els.boot.addEventListener('click', () => {
-            if (state.isBooting) finalizeBootAndGreet();
-        });
+        html += `</div>`;
+        return html;
+      }
+    };
 
-        const init = () => {
-            initAudio(); 
-            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-            setTimeout(runBootSequence, 3000); 
-            document.addEventListener('click', (e) => {
-                const isInteractive = e.target.closest('a, button, input');
-                if (!window.getSelection().toString() && !isInteractive) els.input.focus();
-            });
-        };
-        document.addEventListener('DOMContentLoaded', init); 
-    </script>
+    const handleCommand = async (raw) => {
+      if (state.isTyping || state.isBooting) {
+        if (raw.trim()) playSound('error');
+        return;
+      }
+      const input = raw.trim();
+      if (!input) return;
+      
+      const cmd = input.split(/\s+/)[0].toLowerCase();
+      printPrompt(input, 'user');
+      
+      state.isTyping = true;
+      updateInputLockState();
+
+      try {
+        if (cmd === '!clear') {
+          els.output.innerHTML = '';
+          playSound('success');
+        } else if (commands[cmd]) {
+          await processOutput(commands[cmd]());
+        } else {
+          playSound('error');
+          await processOutput(`
+            <div class="flex items-center gap-3">
+              <span class="white-block bg-[var(--error-color)] text-white">ERROR: INVALID COMMAND</span>
+              <span class="text-xs opacity-50">Type !help for available protocols.</span>
+            </div>
+          `);
+        }
+      } finally {
+        state.isTyping = false;
+        updateInputLockState();
+      }
+    };
+
+    // --- BOOT SEQUENCE (Enhanced) ---
+    const runBootSequence = async () => {
+      updateInputLockState();
+      
+      const bootLines = [
+        "MEMORY CHECK...... OK",
+        "INITIALIZING VHS OVERLAY ENGINE...",
+        "LOADING CHROMATIC ABERRATION MODULE...",
+        "> ALCOR.SYS DETECTED",
+        "BLUE SCREEN PROTOCOL ACTIVE.",
+        "ESTABLISHING SECURE CONNECTION..."
+      ];
+
+      for (let i = 0; i < bootLines.length; i++) {
+        const p = document.createElement('div');
+        p.innerHTML = bootLines[i];
+        p.style.opacity = '0.7';
+        els.bootLog.appendChild(p);
+        // Update progress bar
+        els.bootProgress.style.width = `${((i + 1) / bootLines.length) * 100}%`;
+        await new Promise(r => setTimeout(r, 250));
+      }
+      
+      await new Promise(r => setTimeout(r, 500));
+      finalizeBootAndGreet();
+    };
+
+    const finalizeBootAndGreet = async () => {
+      if (!state.isBooting) return;
+      state.isBooting = false;
+      
+      // Finalize progress bar
+      els.bootProgress.style.width = '100%';
+      
+      const greeting = `<span class="white-block glitch-title text-xl md:text-2xl italic pr-4 tracking-tighter">ABOUT ME.</span><br><br><span class="opacity-80">polaris v2.0 initialized. type</span> <span class="font-bold border-b-2 border-[var(--text-main)]">!help</span> <span class="opacity-80">to begin.</span>`;
+      
+      await new Promise(r => setTimeout(r, 200));
+      printPrompt(greeting, 'sys');
+      playSound('success');
+      
+      // Fade out boot screen
+      els.boot.style.opacity = '0';
+      els.boot.style.pointerEvents = 'none';
+      
+      state.isTyping = false;
+      updateInputLockState();
+    };
+
+    // --- EVENT LISTENERS ---
+    els.input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleCommand(els.input.value);
+        els.input.value = '';
+      } else if (e.key.length === 1 || e.key === 'Backspace') {
+        if (!state.isTyping && !state.isBooting) playSound('click');
+      }
+    });
+
+    els.boot.addEventListener('click', () => {
+      if (state.isBooting) finalizeBootAndGreet();
+    });
+
+    // --- INITIALIZATION ---
+    const init = () => {
+      initAudio();
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      
+      // Auto-boot after a short delay
+      setTimeout(runBootSequence, 800);
+      
+      // Focus input on click outside interactive elements
+      document.addEventListener('click', (e) => {
+        if (!window.getSelection()?.toString() && !e.target.closest('a, button, input, #boot-screen')) {
+          if (!state.isBooting && !state.isTyping) els.input.focus();
+        }
+      });
+
+      // Simulate tracking number changes (purely decorative)
+      setInterval(() => {
+        const tracker = document.querySelector('.tracking-num');
+        if (tracker) {
+          const num = Math.floor(Math.random() * 9000) + 1000;
+          tracker.textContent = num;
+        }
+      }, 3000);
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+
 </body>
 </html>
