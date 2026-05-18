@@ -11,21 +11,14 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
-    <script src="https://cdn.tailwindcss.com" defer>
-    </script>
+    <script src="https://cdn.tailwindcss.com" defer></script>
 
     <!-- DM Sans (Coolvetica alternative) + JetBrains Mono -->
-    <link rel="preload"
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
-    as="style">
-    <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <script src="https://unpkg.com/lucide@latest" defer>
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer>
-    </script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js" defer></script>
 
     <style>
         :root {
@@ -177,7 +170,6 @@
                     var(--glow-red));
             background-size: 200% 100%;
             animation: shimmer 2.5s linear infinite;
-            /* soft glow contained to the line itself */
             box-shadow:
                 0 0 6px var(--glow-red),
                 0 0 10px var(--glow-cyan);
@@ -428,10 +420,10 @@
     </main>
 
     <script>
-        // --- DATA LAYER (10 fixed) ---
+        // --- DATA LAYER (updated with new typology) ---
         const USER_DATA = {
             name: "Sajid (Alcor / Zep)",
-            details: "19 · he/him · Bangladesh (GMT+6) · islam · ENFJ (FeNiSeTi) · 9w1 953 so/sx · FLEV 2122 · sanguine-phlegmatic · EIE-Fe",
+            details: "19 · he/him · Bangladesh (GMT+6) · islam · ENFJ (FeNiSeTi) · 9w8 so/sx 972 (9w8·7w6·2w3) · evfl²³¹² · sanguine-phlegmatic · EIE-Fe",
             bio: `ZEP, ALCOR, SAJID.<br>Bangladeshi.<br>Gray-spec.<br>He/Him.<br>Islam.<br>19.<br><span class="text-[10px] sm:text-xs opacity-50">(As of uploading this post)</span>`,
             interests: {
                 "series i enjoy": [
@@ -611,7 +603,7 @@
             playSound('success');
         };
 
-        // --- COMMANDS ---
+        // --- COMMANDS (updated bio block) ---
         const commands = {
             '!help': () => `
                 <div class="white-block glitch-title text-base sm:text-lg md:text-xl mb-2 sm:mb-3 italic pr-3 tracking-tighter">PROTOCOLS</div>
@@ -628,8 +620,8 @@
                 <div class="flex flex-wrap gap-1.5 text-[10px] sm:text-xs font-bold">
                     <span class="white-block">ENFJ · Fe Ni Se Ti</span>
                     <span class="white-block">SO·SX</span>
-                    <span class="white-block">9w1 · 953</span>
-                    <span class="white-block">FLEV · 2122</span>
+                    <span class="white-block">9w8 · 972 (9w8·7w6·2w3)</span>
+                    <span class="white-block">evfl²³¹²</span>
                     <span class="white-block">Sanguine-Phlegmatic</span>
                 </div>
             `,
